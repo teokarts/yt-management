@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 YOUTUBE_VIDEO_BOOKMARK_SAAS_PROMPT.md
 .env.example
+supabase/seed.sql
+supabase/seed.sql
+supabase/migrations/20240101000000_initial_schema.sql

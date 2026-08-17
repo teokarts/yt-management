@@ -11,8 +11,61 @@ import { slugify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "./videos";
 
+type Supabase = Awaited<ReturnType<typeof createServerSupabase>>;
+
+/**
+ * Resolves a requested parent category, verifying ownership and rejecting
+ * self/descendant nesting so the tree can never form a cycle.
+ */
+async function resolveParent(
+  supabase: Supabase,
+  userId: string,
+  parentId: string | null | undefined,
+  selfId?: string,
+): Promise<{ ok: true; parentId: string | null } | { ok: false; error: string }> {
+  if (!parentId) return { ok: true, parentId: null };
+
+  if (selfId && parentId === selfId) {
+    return { ok: false, error: "A category cannot be nested inside itself." };
+  }
+
+  const { data: parent, error } = await supabase
+    .from("categories")
+    .select("id, parent_id")
+    .eq("id", parentId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) return { ok: false, error: error.message };
+  if (!parent) return { ok: false, error: "Parent category not found." };
+
+  if (selfId) {
+    let cursor: { id: string; parent_id: string | null } | null = parent;
+    const seen = new Set<string>([parentId]);
+    while (cursor?.parent_id) {
+      if (cursor.parent_id === selfId) {
+        return { ok: false, error: "A category cannot be nested inside itself." };
+      }
+      if (seen.has(cursor.parent_id)) break;
+      seen.add(cursor.parent_id);
+      const { data: ancestor } = (await supabase
+        .from("categories")
+        .select("id, parent_id")
+        .eq("id", cursor.parent_id)
+        .eq("user_id", userId)
+        .maybeSingle()) as {
+        data: { id: string; parent_id: string | null } | null;
+      };
+      cursor = ancestor;
+    }
+  }
+
+  return { ok: true, parentId };
+}
+
 export async function createCategory(input: {
   name: string;
+  parentId?: string | null;
   color?: string | null;
   icon?: string | null;
   description?: string | null;
@@ -24,6 +77,9 @@ export async function createCategory(input: {
   }
 
   const supabase = await createServerSupabase();
+
+  const parent = await resolveParent(supabase, user.id, parsed.data.parentId);
+  if (!parent.ok) return parent;
 
   const { data: maxRow } = await supabase
     .from("categories")
@@ -42,6 +98,7 @@ export async function createCategory(input: {
       color: parsed.data.color ?? null,
       icon: parsed.data.icon ?? null,
       description: parsed.data.description ?? null,
+      parent_id: parent.parentId,
       sort_order: (maxRow?.sort_order ?? -1) + 1,
     })
     .select("id")
@@ -61,6 +118,7 @@ export async function createCategory(input: {
 export async function renameCategory(input: {
   id: string;
   name: string;
+  parentId?: string | null;
   color?: string | null;
   icon?: string | null;
   description?: string | null;
@@ -72,6 +130,21 @@ export async function renameCategory(input: {
   }
 
   const supabase = await createServerSupabase();
+
+  const { data: existing } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("id", parsed.data.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    return { ok: false, error: "Category not found." };
+  }
+
+  const parent = await resolveParent(supabase, user.id, parsed.data.parentId, parsed.data.id);
+  if (!parent.ok) return parent;
+
   const { error } = await supabase
     .from("categories")
     .update({
@@ -80,6 +153,7 @@ export async function renameCategory(input: {
       color: parsed.data.color ?? null,
       icon: parsed.data.icon ?? null,
       description: parsed.data.description ?? null,
+      parent_id: parent.parentId,
     })
     .eq("id", parsed.data.id)
     .eq("user_id", user.id);

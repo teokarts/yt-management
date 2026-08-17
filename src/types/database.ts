@@ -39,6 +39,7 @@ export type Category = {
   description: string | null;
   icon: string | null;
   color: string | null;
+  parent_id: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -133,6 +134,7 @@ export interface Database {
           description?: string | null;
           icon?: string | null;
           color?: string | null;
+          parent_id?: string | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;

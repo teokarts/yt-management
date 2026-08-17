@@ -8,25 +8,103 @@ import { useToast } from "@/components/ui/toast";
 import { createCategory, renameCategory } from "@/app/actions/categories";
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_ICON_KEYS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import type { CategoryWithCount } from "@/types/database";
+import type { Category, CategoryWithCount } from "@/types/database";
+
+interface ParentOption {
+  id: string;
+  name: string;
+  depth: number;
+}
+
+function buildParentOptions(categories: Category[], excludeIds: Set<string>): ParentOption[] {
+  const nodes = new Map<string, { cat: Category; children: Category[] }>();
+  for (const c of categories) {
+    nodes.set(c.id, { cat: c, children: [] });
+  }
+  const roots: Category[] = [];
+  for (const c of categories) {
+    if (c.parent_id && nodes.has(c.parent_id) && !excludeIds.has(c.id)) {
+      nodes.get(c.parent_id)!.children.push(c);
+    } else {
+      roots.push(c);
+    }
+  }
+
+  const options: ParentOption[] = [];
+  const walk = (cat: Category, depth: number) => {
+    if (excludeIds.has(cat.id)) return;
+    options.push({ id: cat.id, name: cat.name, depth });
+    for (const child of nodes.get(cat.id)!.children) {
+      walk(child, depth + 1);
+    }
+  };
+  for (const root of roots) walk(root, 0);
+  return options;
+}
 
 export function CategoryDialog({
   open,
   onClose,
   category,
+  categories,
+  defaultParentId,
 }: {
   open: boolean;
   onClose: () => void;
   category?: CategoryWithCount | null;
+  categories?: Category[] | null;
+  defaultParentId?: string | null;
 }) {
   const isEdit = Boolean(category);
   const [name, setName] = useState(category?.name ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
   const [color, setColor] = useState(category?.color ?? CATEGORY_COLORS[0]);
   const [icon, setIcon] = useState(category?.icon ?? "book");
+  const [parentId, setParentId] = useState<string | null>(
+    category?.parent_id ?? defaultParentId ?? null,
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setName(category?.name ?? "");
+      setDescription(category?.description ?? "");
+      setColor(category?.color ?? CATEGORY_COLORS[0]);
+      setIcon(category?.icon ?? "book");
+      setParentId(category?.parent_id ?? defaultParentId ?? null);
+      setError(null);
+    }
+  }
+
+  const excludeIds = new Set<string>();
+  if (category) {
+    const all = categories ?? [];
+    const children = new Map<string, string[]>();
+    for (const c of all) {
+      if (c.parent_id) {
+        const list = children.get(c.parent_id) ?? [];
+        list.push(c.id);
+        children.set(c.parent_id, list);
+      }
+    }
+    const queue = [category.id];
+    excludeIds.add(category.id);
+    while (queue.length) {
+      const cur = queue.shift()!;
+      for (const child of children.get(cur) ?? []) {
+        if (!excludeIds.has(child)) {
+          excludeIds.add(child);
+          queue.push(child);
+        }
+      }
+    }
+  }
+
+  const parentOptions = buildParentOptions(categories ?? [], excludeIds);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,24 +116,32 @@ export function CategoryDialog({
     setBusy(true);
     try {
       if (isEdit && category) {
-        const res = await renameCategory({ id: category.id, name, color, icon, description });
+        const res = await renameCategory({
+          id: category.id,
+          name,
+          color,
+          icon,
+          description,
+          parentId,
+        });
         if (!res.ok) {
           setError(res.error ?? "Could not update category.");
           return;
         }
         toast("Category updated");
       } else {
-        const res = await createCategory({ name, color, icon, description });
+        const res = await createCategory({ name, color, icon, description, parentId });
         if (!res.ok) {
           setError(res.error ?? "Could not create category.");
           return;
         }
-        toast("Category created", { description: name.trim() });
+        toast(parentId ? "Subcategory created" : "Category created", { description: name.trim() });
       }
       setName("");
       setDescription("");
       setColor(CATEGORY_COLORS[0]);
       setIcon("book");
+      setParentId(null);
       onClose();
     } finally {
       setBusy(false);
@@ -66,8 +152,16 @@ export function CategoryDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit category" : "New category"}
-      description={isEdit ? "Update how this category looks." : "Create a category for your videos."}
+      title={
+        isEdit ? "Edit category" : parentId ? "New subcategory" : "New category"
+      }
+      description={
+        isEdit
+          ? "Update how this category looks."
+          : parentId
+            ? "Add a subcategory to organize this group further."
+            : "Create a category for your videos."
+      }
       size="md"
     >
       <form onSubmit={handleSubmit} className="px-6 py-5">
@@ -83,6 +177,30 @@ export function CategoryDialog({
               maxLength={40}
             />
           </div>
+
+          {categories && categories.length > 0 && (
+            <div>
+              <FieldLabel htmlFor="category-parent">Parent category</FieldLabel>
+              <select
+                id="category-parent"
+                value={parentId ?? ""}
+                onChange={(e) => setParentId(e.target.value || null)}
+                className="h-10 w-full rounded-md border border-border bg-sunken px-3 text-sm text-primary transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none"
+              >
+                <option value="">No parent (top level)</option>
+                {parentOptions.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {"\u00A0\u00A0".repeat(o.depth)}
+                    {o.depth > 0 ? "↳ " : ""}
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[12px] leading-relaxed text-muted">
+                Leave empty for a top-level category. Subcategories are nested under their parent.
+              </p>
+            </div>
+          )}
 
           <div>
             <FieldLabel>Accent color</FieldLabel>
@@ -152,7 +270,7 @@ export function CategoryDialog({
             Cancel
           </Button>
           <Button type="submit" variant="primary" loading={busy}>
-            {isEdit ? "Save changes" : "Create category"}
+            {isEdit ? "Save changes" : parentId ? "Create subcategory" : "Create category"}
           </Button>
         </div>
       </form>

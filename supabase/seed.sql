@@ -15,6 +15,9 @@ declare
   v_ai uuid;
   v_design uuid;
   v_watch_later uuid;
+  v_frontend uuid;
+  v_backend uuid;
+  v_ml uuid;
   v_nextjs uuid;
   v_supabase uuid;
   v_react uuid;
@@ -36,6 +39,16 @@ begin
   select id into v_ai from public.categories where user_id = v_user and slug = 'ai';
   select id into v_design from public.categories where user_id = v_user and slug = 'design';
   select id into v_watch_later from public.categories where user_id = v_user and slug = 'watch-later';
+
+  -- Subcategories
+  insert into public.categories (user_id, name, slug, color, icon, parent_id, sort_order) values
+    (v_user, 'Frontend', 'frontend', '#4fb477', 'code', v_dev, 10),
+    (v_user, 'Backend', 'backend', '#4fb477', 'code', v_dev, 11),
+    (v_user, 'Machine Learning', 'machine-learning', '#5aa2d8', 'brain', v_ai, 12);
+
+  select id into v_frontend from public.categories where user_id = v_user and slug = 'frontend';
+  select id into v_backend from public.categories where user_id = v_user and slug = 'backend';
+  select id into v_ml from public.categories where user_id = v_user and slug = 'machine-learning';
 
   -- Tags
   insert into public.tags (user_id, name, normalized_name, slug, is_pinned) values
@@ -91,7 +104,9 @@ begin
   insert into public.video_categories (video_id, category_id) values
     (v_video, v_dev),
     (v_video, v_ai),
-    (v_video, v_watch_later);
+    (v_video, v_watch_later),
+    (v_video, v_frontend),
+    (v_video, v_ml);
 
   insert into public.video_tags (video_id, tag_id) values
     (v_video, v_nextjs),

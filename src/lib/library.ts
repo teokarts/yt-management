@@ -140,6 +140,33 @@ export async function fetchAllCategories(
   return data ?? [];
 }
 
+/** Returns the given category id plus every nested descendant id. */
+export async function collectCategoryDescendants(
+  supabase: DB,
+  userId: string,
+  categoryId: string,
+): Promise<string[]> {
+  const all = await fetchAllCategories(supabase, userId);
+  const byParent = new Map<string, string[]>();
+  for (const c of all) {
+    if (c.parent_id) {
+      const list = byParent.get(c.parent_id) ?? [];
+      list.push(c.id);
+      byParent.set(c.parent_id, list);
+    }
+  }
+  const result: string[] = [categoryId];
+  const queue = [categoryId];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const child of byParent.get(cur) ?? []) {
+      result.push(child);
+      queue.push(child);
+    }
+  }
+  return result;
+}
+
 export async function fetchAllTags(supabase: DB, userId: string): Promise<Tag[]> {
   const { data, error } = await supabase
     .from("tags")

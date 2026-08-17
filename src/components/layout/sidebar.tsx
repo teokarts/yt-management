@@ -12,6 +12,8 @@ import {
   LayoutGrid,
   Pin,
   LogOut,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { cn } from "@/lib/utils";
@@ -71,10 +73,43 @@ function NavItem({
   );
 }
 
+interface CategoryNode {
+  cat: CategoryWithCount;
+  children: CategoryNode[];
+  subtreeCount: number;
+}
+
+function buildCategoryTree(categories: CategoryWithCount[]): CategoryNode[] {
+  const nodes = new Map<string, CategoryNode>();
+  for (const c of categories) {
+    nodes.set(c.id, { cat: c, children: [], subtreeCount: c.video_count });
+  }
+  const roots: CategoryNode[] = [];
+  for (const c of categories) {
+    const node = nodes.get(c.id);
+    if (!node) continue;
+    if (c.parent_id && nodes.has(c.parent_id)) {
+      nodes.get(c.parent_id)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  const sum = (n: CategoryNode): number => {
+    let total = n.cat.video_count;
+    for (const child of n.children) total += sum(child);
+    n.subtreeCount = total;
+    return total;
+  };
+  roots.forEach(sum);
+  return roots;
+}
+
 function SidebarInner(props: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [dialogParent, setDialogParent] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [signingOut, setSigningOut] = useState(false);
 
   const favoriteActive = pathname === "/app" && searchParams.get("favorite") === "1";
@@ -90,12 +125,111 @@ function SidebarInner(props: SidebarProps) {
     return m ? decodeURIComponent(m[1]) : null;
   }, [pathname]);
 
+  const categoryTree = useMemo(() => buildCategoryTree(props.categories), [props.categories]);
+
+  // Ancestors of the active category are always expanded so it stays visible.
+  const activeAncestorIds = useMemo(() => {
+    if (!categoryActive) return new Set<string>();
+    const catBySlug = new Map(props.categories.map((c) => [c.slug, c]));
+    const catById = new Map(props.categories.map((c) => [c.id, c]));
+    const ids = new Set<string>();
+    let cur = catBySlug.get(categoryActive);
+    while (cur?.parent_id) {
+      ids.add(cur.parent_id);
+      cur = catById.get(cur.parent_id);
+    }
+    return ids;
+  }, [categoryActive, props.categories]);
+
   const handleSignOut = async () => {
     setSigningOut(true);
     await signOut();
   };
 
   const initial = (props.displayName ?? props.email).slice(0, 1).toUpperCase();
+
+  const toggleCollapse = (id: string) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const openCategoryDialog = (parentId: string | null) => {
+    setDialogParent(parentId);
+    setShowCategoryDialog(true);
+  };
+
+  const renderCategoryNode = (node: CategoryNode, depth: number): React.ReactNode => {
+    const { cat } = node;
+    const active = categoryActive === cat.slug;
+    const hasChildren = node.children.length > 0;
+    const isExpanded = !collapsed.has(cat.id) || activeAncestorIds.has(cat.id);
+    const count = hasChildren ? node.subtreeCount : cat.video_count;
+
+    return (
+      <div key={cat.id} style={depth > 0 ? { paddingLeft: 16 } : undefined}>
+        <div className="group flex items-center">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => toggleCollapse(cat.id)}
+              aria-label={isExpanded ? `Collapse ${cat.name}` : `Expand ${cat.name}`}
+              className={cn(
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-primary",
+                active && "text-accent",
+              )}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : (
+            <span className="h-7 w-7 shrink-0" />
+          )}
+          <Link
+            href={`/app/category/${cat.slug}`}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-2.5 rounded-md py-2 text-[13.5px] transition-colors",
+              active ? "text-primary" : "text-secondary hover:bg-hover hover:text-primary",
+            )}
+          >
+            <span
+              className={cn(
+                "h-2 w-2 shrink-0 rounded-full",
+                cat.color ? "" : "bg-muted/60",
+              )}
+              style={cat.color ? { backgroundColor: cat.color } : undefined}
+            />
+            <span className="flex-1 truncate">{cat.name}</span>
+            {count > 0 && (
+              <span className="font-mono text-[10.5px] tabular-nums text-muted group-hover:text-secondary">
+                {count}
+              </span>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={() => openCategoryDialog(cat.id)}
+            aria-label={`Add subcategory to ${cat.name}`}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-all hover:bg-hover hover:text-accent focus-visible:opacity-100 group-hover:opacity-100"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        {hasChildren && isExpanded && (
+          <div className="space-y-0.5">
+            {node.children.map((child) => renderCategoryNode(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-sidebar">
@@ -140,7 +274,7 @@ function SidebarInner(props: SidebarProps) {
             </p>
             <button
               type="button"
-              onClick={() => setShowCategoryDialog(true)}
+              onClick={() => openCategoryDialog(null)}
               aria-label="New category"
               className="rounded p-1 text-muted transition-colors hover:bg-hover hover:text-accent"
             >
@@ -152,36 +286,9 @@ function SidebarInner(props: SidebarProps) {
               No categories yet. Create one to start organizing.
             </p>
           )}
-          {props.categories.map((cat) => {
-            const active = categoryActive === cat.slug;
-            return (
-              <Link
-                key={cat.id}
-                href={`/app/category/${cat.slug}`}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "group flex items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] transition-colors",
-                  active
-                    ? "bg-selected text-primary"
-                    : "text-secondary hover:bg-hover hover:text-primary",
-                )}
-              >
-                <span
-                  className={cn(
-                    "h-2 w-2 shrink-0 rounded-full",
-                    cat.color ? "" : "bg-muted/60",
-                  )}
-                  style={cat.color ? { backgroundColor: cat.color } : undefined}
-                />
-                <span className="flex-1 truncate">{cat.name}</span>
-                {cat.video_count > 0 && (
-                  <span className="font-mono text-[10.5px] tabular-nums text-muted group-hover:text-secondary">
-                    {cat.video_count}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+          <div className="space-y-0.5">
+            {categoryTree.map((node) => renderCategoryNode(node, 0))}
+          </div>
         </div>
 
         <div className="mt-6 space-y-0.5">
@@ -261,7 +368,12 @@ function SidebarInner(props: SidebarProps) {
         </button>
       </div>
 
-      <CategoryDialog open={showCategoryDialog} onClose={() => setShowCategoryDialog(false)} />
+      <CategoryDialog
+        open={showCategoryDialog}
+        onClose={() => setShowCategoryDialog(false)}
+        categories={props.categories}
+        defaultParentId={dialogParent}
+      />
     </aside>
   );
 }

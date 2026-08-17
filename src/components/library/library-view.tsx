@@ -358,12 +358,16 @@ export function LibraryView({
           <span className="text-[12px] text-muted">Showing:</span>
           {context.baseCategoryIds?.map((id) => {
             const cat = categories.find((c) => c.id === id);
-            return cat ? (
+            if (!cat) return null;
+            const isTopOfSelection =
+              !cat.parent_id || !context.baseCategoryIds?.includes(cat.parent_id);
+            if (!isTopOfSelection) return null;
+            return (
               <span key={id} className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent-strong">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cat.color ?? "currentColor" }} />
                 {cat.name}
               </span>
-            ) : null;
+            );
           })}
           {context.baseTagIds?.map((id) => {
             const tag = tags.find((t) => t.id === id);

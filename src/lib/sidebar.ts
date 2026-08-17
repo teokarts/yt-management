@@ -23,7 +23,7 @@ export async function loadSidebarData(supabase: DB, userId: string): Promise<Sid
   const [categoriesRes, tagsRes, totalRes, favRes, laterRes] = await Promise.all([
     supabase
       .from("categories")
-      .select("id, name, slug, color, icon, sort_order, video_count:videos!video_categories(count)")
+      .select("id, name, slug, color, icon, parent_id, sort_order, video_count:videos!video_categories(count)")
       .eq("user_id", userId)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true }),
@@ -52,6 +52,7 @@ export async function loadSidebarData(supabase: DB, userId: string): Promise<Sid
     slug: string;
     color: string | null;
     icon: string | null;
+    parent_id: string | null;
     sort_order: number;
     video_count: { count: number } | number | null;
   }): CategoryWithCount => ({
@@ -61,6 +62,7 @@ export async function loadSidebarData(supabase: DB, userId: string): Promise<Sid
     slug: c.slug,
     color: c.color,
     icon: c.icon,
+    parent_id: c.parent_id,
     sort_order: c.sort_order,
     video_count: countValue(c.video_count),
     created_at: "",

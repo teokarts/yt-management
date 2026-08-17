@@ -56,6 +56,7 @@ export const updateVideoFlagsSchema = z.object({
 
 export const createCategorySchema = z.object({
   name: categoryNameSchema,
+  parentId: z.string().uuid().optional().nullable(),
   color: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
@@ -68,6 +69,7 @@ export const createCategorySchema = z.object({
 export const renameCategorySchema = z.object({
   id: categoryIdSchema,
   name: categoryNameSchema,
+  parentId: z.string().uuid().optional().nullable(),
   color: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
