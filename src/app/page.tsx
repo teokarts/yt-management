@@ -177,7 +177,7 @@ export default function LandingPage() {
               Your YouTube history, <span className="text-accent-strong">made searchable.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-secondary">
-              Stop bookmarking tabs and juggling playlists. Reelist turns the videos you save into a
+              Stop bookmarking tabs and juggling playlists. YouTube Bookmarker turns the videos you save into a
               curated, personal library you can actually navigate.
             </p>
 

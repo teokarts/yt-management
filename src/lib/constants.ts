@@ -1,4 +1,4 @@
-export const APP_NAME = "Reelist";
+export const APP_NAME = "YouTube Bookmarker";
 export const APP_TAGLINE = "Your private video knowledge library";
 
 export const PAGE_SIZE = 24;

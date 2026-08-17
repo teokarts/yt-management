@@ -195,8 +195,8 @@ export function LibraryView({
       searchRef.current?.focus();
       searchRef.current?.select();
     };
-    window.addEventListener("reelist:focus-search", onFocusSearch);
-    return () => window.removeEventListener("reelist:focus-search", onFocusSearch);
+    window.addEventListener("bookmarker:focus-search", onFocusSearch);
+    return () => window.removeEventListener("bookmarker:focus-search", onFocusSearch);
   }, []);
 
   useEffect(() => {
@@ -205,8 +205,8 @@ export function LibraryView({
       const video = videos.find((v) => v.id === id);
       if (video) setEditingVideo(video);
     };
-    window.addEventListener("reelist:edit-video", onEditVideo);
-    return () => window.removeEventListener("reelist:edit-video", onEditVideo);
+    window.addEventListener("bookmarker:edit-video", onEditVideo);
+    return () => window.removeEventListener("bookmarker:edit-video", onEditVideo);
   }, [videos]);
 
   const activeFilterCount =
@@ -450,7 +450,7 @@ export function LibraryView({
 
         <Button
           variant="primary"
-          onClick={() => window.dispatchEvent(new CustomEvent("reelist:open-add"))}
+          onClick={() => window.dispatchEvent(new CustomEvent("bookmarker:open-add"))}
         >
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Add video</span>
@@ -565,7 +565,7 @@ export function LibraryView({
             ) : !isContextFilter ? (
               <Button
                 variant="primary"
-                onClick={() => window.dispatchEvent(new CustomEvent("reelist:open-add"))}
+                onClick={() => window.dispatchEvent(new CustomEvent("bookmarker:open-add"))}
               >
                 <Plus className="h-4 w-4" />
                 Add your first video

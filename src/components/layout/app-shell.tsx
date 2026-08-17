@@ -45,15 +45,15 @@ export function AppShell({ data, children }: { data: AppShellData; children: Rea
         setAddOpen(true);
       } else if (e.key === "/") {
         e.preventDefault();
-        window.dispatchEvent(new CustomEvent("reelist:focus-search"));
+        window.dispatchEvent(new CustomEvent("bookmarker:focus-search"));
       }
     };
     const onOpenAdd = () => setAddOpen(true);
     document.addEventListener("keydown", onKey);
-    window.addEventListener("reelist:open-add", onOpenAdd);
+    window.addEventListener("bookmarker:open-add", onOpenAdd);
     return () => {
       document.removeEventListener("keydown", onKey);
-      window.removeEventListener("reelist:open-add", onOpenAdd);
+      window.removeEventListener("bookmarker:open-add", onOpenAdd);
     };
   }, []);
 
@@ -111,7 +111,7 @@ export function AppShell({ data, children }: { data: AppShellData; children: Rea
           <div className="flex-1" />
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent("reelist:focus-search"))}
+            onClick={() => window.dispatchEvent(new CustomEvent("bookmarker:focus-search"))}
             aria-label="Search"
             className="rounded-md p-1.5 text-secondary transition-colors hover:bg-hover hover:text-primary"
           >

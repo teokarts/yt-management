@@ -170,7 +170,7 @@ export function VideoCard({
       icon: <Pencil className="h-4 w-4" />,
       onSelect: () =>
         window.dispatchEvent(
-          new CustomEvent("reelist:edit-video", { detail: { id: video.id } }),
+          new CustomEvent("bookmarker:edit-video", { detail: { id: video.id } }),
         ),
     },
     {

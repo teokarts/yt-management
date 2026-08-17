@@ -254,7 +254,7 @@ NEXT_PUBLIC_BASE_PATH=/youtube-bookmarks NEXT_PUBLIC_APP_URL=https://plinetpieri
                 <li>
                   Ξεκίνα την εφαρμογή με ένα process manager (π.χ. PM2):
                   <DocCode>{`npm i -g pm2
-pm2 start npm --name reelist -- start -- --port 3000
+pm2 start npm --name youtube-bookmarker -- start -- --port 3000
 pm2 save && pm2 startup`}</DocCode>
                 </li>
               </DocOl>
@@ -275,7 +275,7 @@ ProxyPassReverse /youtube-bookmarks http://127.0.0.1:3000/youtube-bookmarks`}</D
               <p>
                 Αν το hosting δεν επιτρέπει reverse proxy, εναλλακτική είναι subdomain (π.χ.{" "}
                 <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-[13px] text-primary">
-                  reelist.plinetpierias.gr
+                  bookmarker.plinetpierias.gr
                 </code>
                 ) με την ίδια λογική, αλλά χωρίς{" "}
                 <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-[13px] text-primary">
@@ -324,8 +324,8 @@ COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 EXPOSE 3000
 CMD ["node", "server.js"]`}</DocCode>
-              <DocCode>{`docker build -t reelist .
-docker run -d -p 3000:3000 --name reelist --env-file .env.production --restart unless-stopped reelist`}</DocCode>
+              <DocCode>{`docker build -t youtube-bookmarker .
+docker run -d -p 3000:3000 --name youtube-bookmarker --env-file .env.production --restart unless-stopped youtube-bookmarker`}</DocCode>
               <DocNote>
                 Η εφαρμογή πρέπει πάντα να «βλέπει» την ίδια διεύθυνση με τον χρήστη. Αν ο proxy
                 αφαιρεί το πρόθεμα{" "}

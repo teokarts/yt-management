@@ -1,4 +1,4 @@
-# Reelist
+# YouTube Bookmarker
 
 Your private video knowledge library. Save, organize, and rediscover YouTube videos — searchable notes, categories, and tags, all in a fast, dark-only web app.
 

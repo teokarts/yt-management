@@ -234,7 +234,7 @@ function SidebarInner(props: SidebarProps) {
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-sidebar">
       <div className="flex h-16 items-center px-5">
-        <Link href="/app" className="transition-opacity hover:opacity-90" aria-label="Reelist home">
+        <Link href="/app" className="transition-opacity hover:opacity-90" aria-label="YouTube Bookmarker home">
           <Logo />
         </Link>
       </div>

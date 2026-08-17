@@ -23,8 +23,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Reelist — Your private video knowledge library",
-    template: "%s · Reelist",
+    default: "YouTube Bookmarker — Your private video knowledge library",
+    template: "%s · YouTube Bookmarker",
   },
   description:
     "Collect, organize, search and watch the YouTube videos that matter — all in one private, beautifully organized library.",

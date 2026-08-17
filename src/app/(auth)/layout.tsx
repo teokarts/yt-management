@@ -16,7 +16,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Link
           href="/"
           className="mb-8 flex items-center justify-center gap-2.5 transition-opacity hover:opacity-90"
-          aria-label="Reelist home"
+          aria-label="YouTube Bookmarker home"
         >
           <Logo />
         </Link>
