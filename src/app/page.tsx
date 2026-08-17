@@ -29,6 +29,12 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <Logo />
           <nav className="flex items-center gap-2">
+            <Link
+              href="/help"
+              className="hidden rounded-md px-3 py-2 text-[13px] text-secondary transition-colors hover:bg-hover hover:text-primary sm:inline-flex"
+            >
+              Οδηγίες
+            </Link>
             <Link href="/login">
               <Button variant="ghost">Sign in</Button>
             </Link>
@@ -239,6 +245,8 @@ export default function LandingPage() {
             {APP_NAME} · Your private video knowledge library
           </p>
           <div className="flex items-center gap-4 text-xs text-muted">
+            <Link href="/help" className="transition-colors hover:text-primary">Οδηγίες χρήσης</Link>
+            <Link href="/deploy" className="transition-colors hover:text-primary">Εγκατάσταση</Link>
             <Link href="/login" className="transition-colors hover:text-primary">Sign in</Link>
             <Link href="/signup" className="transition-colors hover:text-primary">Sign up</Link>
           </div>
