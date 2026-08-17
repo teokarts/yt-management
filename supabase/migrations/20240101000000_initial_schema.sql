@@ -29,7 +29,8 @@ create table if not exists public.profiles (
   display_name text,
   avatar_url text,
   default_sort text not null default 'recently_added',
-  card_density text not null default 'comfortable' check (card_density in ('comfortable', 'compact', 'cozy')),
+  card_density text not null default 'comfortable' check (card_density in ('comfortable', 'compact', 'cozy', 'list')),
+  is_super_admin boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

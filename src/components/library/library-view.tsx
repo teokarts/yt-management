@@ -6,9 +6,13 @@ import {
   Search,
   SlidersHorizontal,
   ArrowDownUp,
+  ChevronDown,
   X,
   Plus,
   LayoutGrid,
+  Rows3,
+  Columns4,
+  List,
   Heart,
   Clock,
   Film,
@@ -17,14 +21,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, type MenuItem } from "@/components/ui/menu";
 import { VideoGrid, VideoGridSkeleton } from "@/components/video/video-grid";
+import { EditVideoDialog } from "@/components/video/edit-video-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { loadMoreVideos } from "@/app/actions/videos";
+import { updateProfile } from "@/app/actions/profile";
 import {
   SORT_OPTIONS,
   DATE_FILTERS,
   WATCH_STATUSES,
+  CARD_DENSITIES,
   PAGE_SIZE,
   type SortOption,
   type DateFilter,
@@ -32,6 +39,13 @@ import {
   type CardDensity,
 } from "@/lib/constants";
 import type { Category, Tag, VideoWithRelations } from "@/types/database";
+
+const DENSITY_ICONS: Record<CardDensity, React.ReactNode> = {
+  cozy: <Rows3 className="h-4 w-4" />,
+  comfortable: <LayoutGrid className="h-4 w-4" />,
+  compact: <Columns4 className="h-4 w-4" />,
+  list: <List className="h-4 w-4" />,
+};
 
 export interface LibraryContext {
   title: string;
@@ -79,6 +93,7 @@ export function LibraryView({
   const [added, setAdded] = useState<DateFilter>("all");
   const [channel, setChannel] = useState<string | undefined>();
   const [sort, setSort] = useState<SortOption>(defaultSort);
+  const [editingVideo, setEditingVideo] = useState<VideoWithRelations | null>(null);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -184,6 +199,16 @@ export function LibraryView({
     return () => window.removeEventListener("reelist:focus-search", onFocusSearch);
   }, []);
 
+  useEffect(() => {
+    const onEditVideo = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      const video = videos.find((v) => v.id === id);
+      if (video) setEditingVideo(video);
+    };
+    window.addEventListener("reelist:edit-video", onEditVideo);
+    return () => window.removeEventListener("reelist:edit-video", onEditVideo);
+  }, [videos]);
+
   const activeFilterCount =
     (debouncedQ ? 1 : 0) +
     (extraTagIds.length ? 1 : 0) +
@@ -199,6 +224,46 @@ export function LibraryView({
     setAdded("all");
     setChannel(undefined);
   };
+
+  const changeDensity = async (value: CardDensity) => {
+    const res = await updateProfile({ cardDensity: value });
+    if (!res.ok) return toast("Could not save setting", { variant: "error" });
+    toast("Layout updated");
+    router.refresh();
+  };
+
+  const activeClientFilters: { id: string; label: string; clear: () => void }[] = [];
+  if (status) {
+    activeClientFilters.push({
+      id: `status-${status}`,
+      label: `Status: ${status[0].toUpperCase()}${status.slice(1)}`,
+      clear: () => setStatus(undefined),
+    });
+  }
+  if (added !== "all") {
+    activeClientFilters.push({
+      id: "added",
+      label: `Added: ${DATE_FILTERS.find((d) => d.value === added)?.label}`,
+      clear: () => setAdded("all"),
+    });
+  }
+  if (channel) {
+    activeClientFilters.push({
+      id: `channel-${channel}`,
+      label: `Channel: ${channel}`,
+      clear: () => setChannel(undefined),
+    });
+  }
+  for (const id of extraTagIds) {
+    const tag = tags.find((t) => t.id === id);
+    if (tag) {
+      activeClientFilters.push({
+        id: `tag-${id}`,
+        label: `#${tag.name}`,
+        clear: () => setExtraTagIds((prev) => prev.filter((t) => t !== id)),
+      });
+    }
+  }
 
   const hasAnyFilter =
     !!context.baseCategoryIds?.length ||
@@ -222,6 +287,7 @@ export function LibraryView({
     ...WATCH_STATUSES.map((s) => ({
       label: `${s[0].toUpperCase()}${s.slice(1)}`,
       onSelect: () => setStatus(status === s ? undefined : s),
+      active: status === s,
     })),
     { separator: true },
     {
@@ -232,6 +298,7 @@ export function LibraryView({
     ...DATE_FILTERS.map((d) => ({
       label: d.label,
       onSelect: () => setAdded(added === d.value ? "all" : d.value),
+      active: added === d.value,
     })),
     ...(channels.length > 0
       ? ([
@@ -240,6 +307,7 @@ export function LibraryView({
           ...channels.map((c) => ({
             label: c,
             onSelect: () => setChannel(channel === c ? undefined : c),
+            active: channel === c,
           })),
         ] as MenuItem[])
       : []),
@@ -310,6 +378,7 @@ export function LibraryView({
             <Button
               variant="secondary"
               size="md"
+              data-menu-trigger
               onClick={toggle}
               aria-expanded={open}
               className={cn(activeFilterCount > 0 && "border-accent/40 text-accent-strong")}
@@ -321,6 +390,9 @@ export function LibraryView({
                   {activeFilterCount}
                 </span>
               )}
+              <ChevronDown
+                className={cn("h-4 w-4 text-muted transition-transform", open && "rotate-180")}
+              />
             </Button>
           )}
           items={filterItems}
@@ -330,16 +402,49 @@ export function LibraryView({
           label="Sort"
           align="end"
           trigger={({ open, toggle }) => (
-            <Button variant="secondary" onClick={toggle} aria-expanded={open}>
+            <Button variant="secondary" data-menu-trigger onClick={toggle} aria-expanded={open} aria-haspopup="menu">
               <ArrowDownUp className="h-4 w-4" />
               <span className="hidden sm:inline">
-                {SORT_OPTIONS.find((s) => s.value === sort)?.label}
+                Sort: {SORT_OPTIONS.find((s) => s.value === sort)?.label}
               </span>
+              <ChevronDown
+                className={cn("h-4 w-4 text-muted transition-transform", open && "rotate-180")}
+              />
             </Button>
           )}
           items={SORT_OPTIONS.map((s) => ({
             label: s.label,
             onSelect: () => setSort(s.value),
+            active: sort === s.value,
+          }))}
+        />
+
+        <DropdownMenu
+          label="Card layout"
+          align="end"
+          trigger={({ open, toggle }) => (
+            <Button
+              variant="secondary"
+              data-menu-trigger
+              onClick={toggle}
+              aria-expanded={open}
+              aria-haspopup="menu"
+              aria-label="Card layout"
+            >
+              {DENSITY_ICONS[density]}
+              <span className="hidden sm:inline">
+                {CARD_DENSITIES.find((d) => d.value === density)?.label}
+              </span>
+              <ChevronDown
+                className={cn("h-4 w-4 text-muted transition-transform", open && "rotate-180")}
+              />
+            </Button>
+          )}
+          items={CARD_DENSITIES.map((d) => ({
+            label: d.label,
+            onSelect: () => changeDensity(d.value),
+            icon: DENSITY_ICONS[d.value],
+            active: density === d.value,
           }))}
         />
 
@@ -397,24 +502,28 @@ export function LibraryView({
         </div>
       )}
 
-      {/* Extra tag filters */}
-      {extraTagIds.length > 0 && (
+      {/* Active filter chips */}
+      {activeClientFilters.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          {extraTagIds.map((id) => {
-            const tag = tags.find((t) => t.id === id);
-            if (!tag) return null;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setExtraTagIds((prev) => prev.filter((t) => t !== id))}
-                className="inline-flex items-center gap-1 rounded-full border border-border-strong bg-elevated px-2.5 py-1 text-[12px] font-medium text-secondary transition-colors hover:border-accent/50 hover:text-primary"
-              >
-                <Hash className="h-3 w-3" /> {tag.name}
-                <X className="h-3 w-3" />
-              </button>
-            );
-          })}
+          <span className="text-[12px] text-muted">Filtering:</span>
+          {activeClientFilters.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={f.clear}
+              className="inline-flex items-center gap-1 rounded-full border border-border-strong bg-elevated px-2.5 py-1 text-[12px] font-medium text-secondary transition-colors hover:border-accent/50 hover:text-primary"
+            >
+              {f.label}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={clearAll}
+            className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-muted transition-colors hover:text-primary"
+          >
+            <X className="h-3 w-3" /> Clear all
+          </button>
         </div>
       )}
 
@@ -480,6 +589,16 @@ export function LibraryView({
             </p>
           )}
         </>
+      )}
+
+      {editingVideo && (
+        <EditVideoDialog
+          open
+          onClose={() => setEditingVideo(null)}
+          video={editingVideo}
+          categories={categories}
+          tags={tags}
+        />
       )}
     </div>
   );

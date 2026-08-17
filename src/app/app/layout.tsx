@@ -21,6 +21,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
   ]);
 
+  if (profileRes.data?.is_super_admin) {
+    redirect("/admin");
+  }
+
   return (
     <AppShell
       data={{

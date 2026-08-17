@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface MenuItem {
@@ -12,6 +13,7 @@ export interface MenuItem {
   disabled?: boolean;
   shortcut?: string;
   separator?: boolean;
+  active?: boolean;
 }
 
 export function DropdownMenu({
@@ -105,6 +107,7 @@ export function DropdownMenu({
                       {item.shortcut && (
                         <kbd className="font-mono text-[10px] text-muted">{item.shortcut}</kbd>
                       )}
+                      {item.active && <Check className="h-3.5 w-3.5 text-accent-strong" />}
                     </button>
                   )}
                 </div>

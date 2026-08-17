@@ -22,6 +22,7 @@ import { DropdownMenu, type MenuItem } from "@/components/ui/menu";
 import { ConfirmDialog } from "@/components/ui/confirm";
 import { useToast } from "@/components/ui/toast";
 import { cn, formatDuration, relativeTime, truncate } from "@/lib/utils";
+import type { CardDensity } from "@/lib/constants";
 import type { VideoWithRelations } from "@/types/database";
 import {
   deleteVideo,
@@ -35,12 +36,57 @@ const statusStyles: Record<string, { label: string; className: string }> = {
   unwatched: { label: "", className: "" },
 };
 
+const gridStyles: Record<
+  "cozy" | "comfortable" | "compact",
+  { card: string; body: string; title: string; channel: string; chip: string; tag: string; footer: string }
+> = {
+  cozy: {
+    card: "p-4",
+    body: "mt-4 gap-1.5",
+    title: "text-[15px]",
+    channel: "text-[12.5px]",
+    chip: "text-[11px]",
+    tag: "text-[11px]",
+    footer: "text-[12px]",
+  },
+  comfortable: {
+    card: "p-3",
+    body: "mt-3 gap-1",
+    title: "text-[13.5px]",
+    channel: "text-[12px]",
+    chip: "text-[10.5px]",
+    tag: "text-[10.5px]",
+    footer: "text-[11px]",
+  },
+  compact: {
+    card: "p-2.5",
+    body: "mt-2 gap-0.5",
+    title: "text-[12.5px]",
+    channel: "text-[11px]",
+    chip: "text-[10px]",
+    tag: "text-[10px]",
+    footer: "text-[10.5px]",
+  },
+};
+
+const catLimits: Record<"cozy" | "comfortable" | "compact", number> = {
+  cozy: 4,
+  comfortable: 3,
+  compact: 2,
+};
+
+const tagLimits: Record<"cozy" | "comfortable" | "compact", number> = {
+  cozy: 3,
+  comfortable: 2,
+  compact: 1,
+};
+
 export function VideoCard({
   video,
-  compact,
+  density,
 }: {
   video: VideoWithRelations;
-  compact?: boolean;
+  density: CardDensity;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -48,6 +94,11 @@ export function VideoCard({
   const [confirmRefresh, setConfirmRefresh] = useState(false);
 
   const status = statusStyles[video.watch_status];
+  const isList = density === "list";
+  const g = !isList ? gridStyles[density] : null;
+
+  const catLimit = isList ? 4 : catLimits[density];
+  const tagLimit = isList ? 3 : tagLimits[density];
 
   const toggleFavorite = async () => {
     const res = await updateVideoFlags({ videoId: video.id, isFavorite: !video.is_favorite });
@@ -117,7 +168,10 @@ export function VideoCard({
     {
       label: "Edit details",
       icon: <Pencil className="h-4 w-4" />,
-      onSelect: () => router.push(`/app/video/${video.id}?edit=1`),
+      onSelect: () =>
+        window.dispatchEvent(
+          new CustomEvent("reelist:edit-video", { detail: { id: video.id } }),
+        ),
     },
     {
       label: "Refresh metadata",
@@ -133,142 +187,184 @@ export function VideoCard({
     },
   ];
 
+  const menu = (
+    <DropdownMenu
+      label={`Actions for ${video.title}`}
+      trigger={({ open, toggle }) => (
+        <button
+          type="button"
+          data-menu-trigger
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggle();
+          }}
+          aria-label="More actions"
+          aria-expanded={open}
+          className={cn(
+            "rounded-md p-1 text-muted transition-colors hover:bg-hover hover:text-primary",
+            open && "bg-hover text-primary",
+          )}
+        >
+          <EllipsisVertical className="h-4 w-4" />
+        </button>
+      )}
+      items={menuItems}
+    />
+  );
+
+  const meta = (chipClass: string) => (
+    <>
+      {video.categories.slice(0, catLimit).map((cat) => (
+        <Link
+          key={cat.id}
+          href={`/app/category/${cat.slug}`}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 font-medium text-secondary transition-colors hover:border-border-strong hover:text-primary",
+            chipClass,
+          )}
+        >
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cat.color ?? "currentColor" }} />
+          {cat.name}
+        </Link>
+      ))}
+      {video.categories.length > catLimit && (
+        <span className={cn("text-muted", chipClass)}>+{video.categories.length - catLimit}</span>
+      )}
+      {video.tags.slice(0, tagLimit).map((tag) => (
+        <Link
+          key={tag.id}
+          href={`/app/tag/${tag.slug}`}
+          className={cn("font-medium text-accent-strong/80 transition-colors hover:text-accent-strong", chipClass)}
+        >
+          #{tag.name}
+        </Link>
+      ))}
+      {video.tags.length > tagLimit && (
+        <span className={cn("text-muted", chipClass)}>+{video.tags.length - tagLimit}</span>
+      )}
+    </>
+  );
+
+  const footer = (footerClass: string) => (
+    <div className={cn("mt-auto flex items-center justify-between pt-2 text-muted", footerClass)}>
+      <span className="inline-flex items-center gap-1">
+        {video.personal_notes && <StickyNote className="h-3 w-3" />}
+        {video.categories.length + video.tags.length > 0
+          ? `${video.categories.length} cat${video.categories.length === 1 ? "" : "s"} · ${video.tags.length} tag${video.tags.length === 1 ? "" : "s"}`
+          : "Unorganized"}
+      </span>
+      <span className="tabular-nums">Saved {relativeTime(video.created_at)}</span>
+    </div>
+  );
+
+  const thumbnail = (className: string, playSize: string) => (
+    <Link
+      href={`/app/video/${video.id}`}
+      className={cn("relative block overflow-hidden rounded-md bg-sunken", className)}
+      aria-label={`Play ${video.title}`}
+    >
+      {video.thumbnail_url ? (
+        <Image
+          src={video.thumbnail_url}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          unoptimized={false}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center text-muted">
+          <Play className="h-7 w-7" />
+        </div>
+      )}
+
+      {/* Play overlay */}
+      <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/30 group-hover:opacity-100">
+        <span className={cn("flex items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop", playSize)}>
+          <Play className="ml-0.5 h-5 w-5 fill-current" />
+        </span>
+      </span>
+
+      {video.duration && (
+        <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[11px] font-medium text-white">
+          {formatDuration(video.duration)}
+        </span>
+      )}
+
+      {status.label && (
+        <span
+          className={cn(
+            "absolute left-1.5 top-1.5 flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold",
+            status.className,
+          )}
+        >
+          {video.watch_status === "watching" ? <Eye className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+          {status.label}
+        </span>
+      )}
+
+      {video.is_favorite && (
+        <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-danger">
+          <Heart className="h-3.5 w-3.5 fill-current" />
+        </span>
+      )}
+    </Link>
+  );
+
   return (
     <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg border border-border bg-elevated transition-all duration-200 hover:border-border-strong hover:shadow-elevated",
-        compact ? "p-2.5" : "p-3",
+        "group relative overflow-hidden rounded-lg border border-border bg-elevated transition-all duration-200 hover:border-border-strong hover:shadow-elevated",
+        isList ? "flex flex-row gap-4 p-3" : cn("flex flex-col", g?.card),
       )}
     >
-      {/* Thumbnail */}
-      <Link
-        href={`/app/video/${video.id}`}
-        className="relative block aspect-video w-full overflow-hidden rounded-md bg-sunken"
-        aria-label={`Play ${video.title}`}
-      >
-        {video.thumbnail_url ? (
-          <Image
-            src={video.thumbnail_url}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            unoptimized={false}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted">
-            <Play className="h-7 w-7" />
-          </div>
-        )}
-
-        {/* Play overlay */}
-        <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/30 group-hover:opacity-100">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop">
-            <Play className="ml-0.5 h-5 w-5 fill-current" />
-          </span>
-        </span>
-
-        {video.duration && (
-          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[11px] font-medium text-white">
-            {formatDuration(video.duration)}
-          </span>
-        )}
-
-        {status.label && (
-          <span
-            className={cn(
-              "absolute left-1.5 top-1.5 flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold",
-              status.className,
-            )}
-          >
-            {video.watch_status === "watching" ? <Eye className="h-3 w-3" /> : <Check className="h-3 w-3" />}
-            {status.label}
-          </span>
-        )}
-
-        {video.is_favorite && (
-          <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-danger">
-            <Heart className="h-3.5 w-3.5 fill-current" />
-          </span>
-        )}
-      </Link>
-
-      {/* Body */}
-      <div className={cn("flex flex-1 flex-col", compact ? "mt-2 gap-1" : "mt-3 gap-1")}>
-        <div className="flex items-start justify-between gap-2">
-          <Link
-            href={`/app/video/${video.id}`}
-            className="line-clamp-2 flex-1 text-[13.5px] font-semibold leading-snug text-primary transition-colors hover:text-accent-strong"
-          >
-            {video.title}
-          </Link>
-          <DropdownMenu
-            label={`Actions for ${video.title}`}
-            trigger={({ open, toggle }) => (
-              <button
-                type="button"
-                data-menu-trigger
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggle();
-                }}
-                aria-label="More actions"
-                aria-expanded={open}
-                className={cn(
-                  "rounded-md p-1 text-muted transition-colors hover:bg-hover hover:text-primary",
-                  open && "bg-hover text-primary",
-                )}
+      {isList ? (
+        <>
+          {thumbnail("aspect-video w-36 shrink-0 self-center sm:w-48 lg:w-56", "h-9 w-9")}
+          <div className="flex min-w-0 flex-1 flex-col gap-1 py-1">
+            <div className="flex items-start justify-between gap-2">
+              <Link
+                href={`/app/video/${video.id}`}
+                className="line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-primary transition-colors hover:text-accent-strong"
               >
-                <EllipsisVertical className="h-4 w-4" />
-              </button>
+                {video.title}
+              </Link>
+              {menu}
+            </div>
+            {video.channel_name && (
+              <p className="truncate text-[12.5px] text-muted">{video.channel_name}</p>
             )}
-            items={menuItems}
-          />
-        </div>
-
-        {video.channel_name && (
-          <p className="truncate text-[12px] text-muted">{video.channel_name}</p>
-        )}
-
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          {video.categories.slice(0, 3).map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/app/category/${cat.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[10.5px] font-medium text-secondary transition-colors hover:border-border-strong hover:text-primary"
-            >
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cat.color ?? "currentColor" }} />
-              {cat.name}
-            </Link>
-          ))}
-          {video.categories.length > 3 && (
-            <span className="text-[10.5px] text-muted">+{video.categories.length - 3}</span>
-          )}
-          {video.tags.slice(0, 2).map((tag) => (
-            <Link
-              key={tag.id}
-              href={`/app/tag/${tag.slug}`}
-              className="text-[10.5px] font-medium text-accent-strong/80 transition-colors hover:text-accent-strong"
-            >
-              #{tag.name}
-            </Link>
-          ))}
-          {video.tags.length > 2 && (
-            <span className="text-[10.5px] text-muted">+{video.tags.length - 2}</span>
-          )}
-        </div>
-
-        <div className="mt-auto flex items-center justify-between pt-2 text-[11px] text-muted">
-          <span className="inline-flex items-center gap-1">
-            {video.personal_notes && <StickyNote className="h-3 w-3" />}
-            {video.categories.length + video.tags.length > 0
-              ? `${video.categories.length} cat${video.categories.length === 1 ? "" : "s"} · ${video.tags.length} tag${video.tags.length === 1 ? "" : "s"}`
-              : "Unorganized"}
-          </span>
-          <span className="tabular-nums">Saved {relativeTime(video.created_at)}</span>
-        </div>
-      </div>
+            {video.description && (
+              <p className="line-clamp-2 text-[12.5px] leading-relaxed text-secondary">
+                {truncate(video.description, 180)}
+              </p>
+            )}
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">{meta("text-[11px]")}</div>
+            {footer("text-[11px]")}
+          </div>
+        </>
+      ) : (
+        <>
+          {thumbnail("aspect-video w-full", "h-11 w-11")}
+          <div className={cn("flex flex-1 flex-col", g?.body)}>
+            <div className="flex items-start justify-between gap-2">
+              <Link
+                href={`/app/video/${video.id}`}
+                className={cn("line-clamp-2 flex-1 font-semibold leading-snug text-primary transition-colors hover:text-accent-strong", g?.title)}
+              >
+                {video.title}
+              </Link>
+              {menu}
+            </div>
+            {video.channel_name && (
+              <p className={cn("truncate text-muted", g?.channel)}>{video.channel_name}</p>
+            )}
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">{meta(g!.chip)}</div>
+            {density !== "compact" && footer(g!.footer)}
+          </div>
+        </>
+      )}
 
       <ConfirmDialog
         open={confirmDelete}

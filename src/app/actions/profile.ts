@@ -9,7 +9,7 @@ import type { ActionResult } from "./videos";
 export async function updateProfile(input: {
   displayName?: string | null;
   defaultSort?: string;
-  cardDensity?: "cozy" | "comfortable" | "compact";
+  cardDensity?: "cozy" | "comfortable" | "compact" | "list";
 }): Promise<ActionResult> {
   const user = await requireUser();
   const parsed = updateProfileSchema.safeParse(input);
@@ -21,7 +21,7 @@ export async function updateProfile(input: {
   const update: {
     display_name?: string | null;
     default_sort?: string;
-    card_density?: "cozy" | "comfortable" | "compact";
+    card_density?: "cozy" | "comfortable" | "compact" | "list";
   } = {};
   if (parsed.data.displayName !== undefined) update.display_name = parsed.data.displayName || null;
   if (parsed.data.defaultSort !== undefined) update.default_sort = parsed.data.defaultSort;

@@ -26,7 +26,7 @@ export async function signIn(input: {
   }
 
   const supabase = await createServerSupabase();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
     return {
       ok: false,
@@ -37,7 +37,18 @@ export async function signIn(input: {
     };
   }
 
+  let isSuperAdmin = false;
+  if (data.user?.id) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_super_admin")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    isSuperAdmin = Boolean(profile?.is_super_admin);
+  }
+
   revalidatePath("/", "layout");
+  if (isSuperAdmin) redirect("/admin");
   redirect(input.next && input.next.startsWith("/") ? input.next : "/app");
 }
 

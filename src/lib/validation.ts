@@ -88,7 +88,7 @@ export const pinTagSchema = z.object({ id: categoryIdSchema, isPinned: z.boolean
 export const updateProfileSchema = z.object({
   displayName: z.string().trim().max(60).nullable().optional(),
   defaultSort: z.string().max(32).optional(),
-  cardDensity: z.enum(["cozy", "comfortable", "compact"]).optional(),
+  cardDensity: z.enum(["cozy", "comfortable", "compact", "list"]).optional(),
 });
 
 export const resetPasswordSchema = z

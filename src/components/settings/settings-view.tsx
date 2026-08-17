@@ -131,7 +131,7 @@ export function SettingsView({
             </div>
             <div>
               <FieldLabel>Video card density</FieldLabel>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 {CARD_DENSITIES.map((d) => (
                   <button
                     key={d.value}

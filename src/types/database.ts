@@ -1,5 +1,5 @@
 export type WatchStatus = "unwatched" | "watching" | "watched";
-export type CardDensity = "cozy" | "comfortable" | "compact";
+export type CardDensity = "cozy" | "comfortable" | "compact" | "list";
 
 export type Profile = {
   id: string;
@@ -7,6 +7,7 @@ export type Profile = {
   avatar_url: string | null;
   default_sort: string;
   card_density: CardDensity;
+  is_super_admin: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -81,6 +82,7 @@ export interface Database {
           avatar_url?: string | null;
           default_sort?: string;
           card_density?: CardDensity;
+          is_super_admin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -244,6 +246,22 @@ export interface Database {
           p_tags: string[];
         };
         Returns: undefined;
+      };
+      admin_daily_series: {
+        Args: { days: number };
+        Returns: { day: string; users: number; videos: number }[];
+      };
+      admin_active_users: {
+        Args: { days: number };
+        Returns: number;
+      };
+      admin_top_users: {
+        Args: { lim: number };
+        Returns: { user_id: string; video_count: number }[];
+      };
+      admin_user_stats: {
+        Args: Record<string, never>;
+        Returns: { user_id: string; video_count: number; last_active: string | null }[];
       };
     };
     Enums: Record<string, never>;
