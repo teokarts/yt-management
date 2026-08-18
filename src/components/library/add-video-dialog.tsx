@@ -22,6 +22,7 @@ import { useAppData } from "@/context/app-data-context";
 import type { YouTubeMetadata } from "@/lib/youtube/api";
 import { formatDuration, formatDate, slugify, cn } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/icons";
+import { buildParentOptions } from "@/lib/categories";
 import type { Category, Tag, VideoWithRelations, WatchStatus } from "@/types/database";
 
 interface AddVideoDialogProps {
@@ -52,6 +53,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [newCatColor, setNewCatColor] = useState(CATEGORY_COLORS[0]);
+  const [newCatParentId, setNewCatParentId] = useState<string | null>(null);
   const [creatingCat, setCreatingCat] = useState(false);
   const [localCategories, setLocalCategories] = useState<Category[]>([]);
 
@@ -71,6 +73,9 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
       setIsWatchLater(false);
       setWatchStatus("unwatched");
       setEditingDuplicate(false);
+      setShowNewCategory(false);
+      setNewCatName("");
+      setNewCatParentId(null);
     }
   }
 
@@ -102,12 +107,18 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
     ...categories.filter((c) => !localCategories.some((l) => l.id === c.id)),
   ];
 
+  const parentOptions = buildParentOptions(allCategories);
+
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim() || creatingCat) return;
     setCreatingCat(true);
     setError(null);
-    const res = await createCategory({ name: newCatName.trim(), color: newCatColor });
+    const res = await createCategory({
+      name: newCatName.trim(),
+      color: newCatColor,
+      parentId: newCatParentId,
+    });
     setCreatingCat(false);
     if (!res.ok || !res.data) {
       toast(res.error ?? "Could not create category.", { variant: "error" });
@@ -121,16 +132,22 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
       description: null,
       icon: null,
       color: newCatColor,
-      parent_id: null,
+      parent_id: newCatParentId,
       sort_order: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     setLocalCategories((prev) => [...prev, newCat]);
     setCategoryIds((prev) => [...prev, newCat.id]);
+    const parentName = newCatParentId
+      ? allCategories.find((c) => c.id === newCatParentId)?.name
+      : null;
     setNewCatName("");
+    setNewCatParentId(null);
     setShowNewCategory(false);
-    toast("Category created", { description: newCat.name });
+    toast(parentName ? "Subcategory created" : "Category created", {
+      description: parentName ? `${parentName} → ${newCat.name}` : newCat.name,
+    });
     refresh();
   };
 
@@ -163,7 +180,8 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
 
     toast("Video saved", { description: metadata.title });
     onClose();
-    refresh();
+    await refresh();
+    window.dispatchEvent(new CustomEvent("bookmarker:library-changed"));
   };
 
   const handleDuplicateUpdate = async () => {
@@ -181,7 +199,8 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
     }
     toast("Video updated", { description: duplicate.title });
     onClose();
-    refresh();
+    await refresh();
+    window.dispatchEvent(new CustomEvent("bookmarker:library-changed"));
   };
 
   const canSave = metadata != null;
@@ -378,6 +397,33 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                   maxLength={40}
                   aria-label="New category name"
                 />
+
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="new-cat-parent"
+                    className="block text-[12px] font-medium text-secondary"
+                  >
+                    Nest under
+                  </label>
+                  <select
+                    id="new-cat-parent"
+                    value={newCatParentId ?? ""}
+                    onChange={(e) => setNewCatParentId(e.target.value || null)}
+                    className="h-9 w-full rounded-md border border-border bg-elevated px-2.5 text-[13px] text-primary transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  >
+                    <option value="">Top level — no parent</option>
+                    {parentOptions.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {`${"  ".repeat(opt.depth)}${opt.depth > 0 ? "↳ " : ""}${opt.name}`}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11.5px] leading-snug text-muted">
+                    {newCatParentId
+                      ? "Creates a subcategory inside the selected category."
+                      : "Pick a parent to create a subcategory instead."}
+                  </p>
+                </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {CATEGORY_COLORS.slice(0, 8).map((c) => (
                     <button

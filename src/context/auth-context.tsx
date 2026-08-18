@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -20,7 +19,6 @@ const AuthContext = createContext<AuthContextValue>({ user: null, loading: true 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -33,11 +31,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
-      if (event === "PASSWORD_RECOVERY") {
-        navigate("/reset-password");
-      }
+      // Recovery links are routed by `consumeAuthFromUrl` before the router
+      // mounts — navigating from here would race it and drop the token.
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -46,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       active = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const value = useCallback(() => ({ user, loading }), [user, loading]);
 

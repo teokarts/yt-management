@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { VideoWithRelations } from "@/types/database";
 
 const densityGrid: Record<CardDensity, string> = {
-  cozy: "sm:grid-cols-2 xl:grid-cols-3",
+  cozy: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
   comfortable: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5",
   compact: "grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6",
   list: "grid-cols-1",
@@ -29,7 +29,7 @@ export function VideoGrid({
 
 export function VideoGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="rounded-lg border border-border bg-elevated p-3">
           <Skeleton className="aspect-video w-full rounded-md" />

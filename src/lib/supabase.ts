@@ -10,7 +10,16 @@ if (!url || !anonKey) {
   );
 }
 
-export const supabase = createClient<Database>(url, anonKey);
+export const supabase = createClient<Database>(url, anonKey, {
+  auth: {
+    // The app uses HashRouter, so the router owns the URL hash. Supabase's own
+    // URL parsing would race it — `consumeAuthFromUrl` handles tokens instead.
+    detectSessionInUrl: false,
+    flowType: "implicit",
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
 
 export function getSupabase() {
   return supabase;

@@ -7,39 +7,8 @@ import { createCategory, renameCategory } from "@/lib/api";
 import { useAppData } from "@/context/app-data-context";
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_ICON_KEYS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { buildParentOptions } from "@/lib/categories";
 import type { Category, CategoryWithCount } from "@/types/database";
-
-interface ParentOption {
-  id: string;
-  name: string;
-  depth: number;
-}
-
-function buildParentOptions(categories: Category[], excludeIds: Set<string>): ParentOption[] {
-  const nodes = new Map<string, { cat: Category; children: Category[] }>();
-  for (const c of categories) {
-    nodes.set(c.id, { cat: c, children: [] });
-  }
-  const roots: Category[] = [];
-  for (const c of categories) {
-    if (c.parent_id && nodes.has(c.parent_id) && !excludeIds.has(c.id)) {
-      nodes.get(c.parent_id)!.children.push(c);
-    } else {
-      roots.push(c);
-    }
-  }
-
-  const options: ParentOption[] = [];
-  const walk = (cat: Category, depth: number) => {
-    if (excludeIds.has(cat.id)) return;
-    options.push({ id: cat.id, name: cat.name, depth });
-    for (const child of nodes.get(cat.id)!.children) {
-      walk(child, depth + 1);
-    }
-  };
-  for (const root of roots) walk(root, 0);
-  return options;
-}
 
 export function CategoryDialog({
   open,

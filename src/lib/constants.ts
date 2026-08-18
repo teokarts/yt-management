@@ -28,7 +28,7 @@ export const DATE_FILTERS = [
 export type DateFilter = (typeof DATE_FILTERS)[number]["value"];
 
 export const CARD_DENSITIES = [
-  { value: "cozy", label: "Cozy", description: "Large cards, fewer per row" },
+  { value: "cozy", label: "Cozy", description: "Roomy cards with generous spacing" },
   { value: "comfortable", label: "Comfortable", description: "Balanced grid for most screens" },
   { value: "compact", label: "Compact", description: "More videos per row, less detail" },
   { value: "list", label: "List", description: "Thumbnail on the left, details on the right" },

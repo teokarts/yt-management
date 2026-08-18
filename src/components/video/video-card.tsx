@@ -260,14 +260,18 @@ export function VideoCard({
   const thumbnail = (className: string, playSize: string) => (
     <Link
       to={`/app/video/${video.id}`}
-      className={cn("relative block overflow-hidden rounded-md bg-sunken", className)}
+      className={cn("relative block overflow-hidden rounded-lg bg-sunken", className)}
       aria-label={`Play ${video.title}`}
     >
       {video.thumbnail_url ? (
         <img
           src={video.thumbnail_url}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          loading="lazy"
+          decoding="async"
+          width={640}
+          height={360}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
       ) : (
         <div className="flex h-full items-center justify-center text-muted">
@@ -276,8 +280,8 @@ export function VideoCard({
       )}
 
       {/* Play overlay */}
-      <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/30 group-hover:opacity-100">
-        <span className={cn("flex items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop", playSize)}>
+      <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <span className={cn("flex items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100", playSize)}>
           <Play className="ml-0.5 h-5 w-5 fill-current" />
         </span>
       </span>
@@ -311,7 +315,9 @@ export function VideoCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-lg border border-border bg-elevated transition-all duration-200 hover:border-border-strong hover:shadow-elevated",
+        "group relative overflow-hidden rounded-xl border border-border bg-elevated transition-all duration-200",
+        "hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-card-hover)]",
+        "focus-within:border-accent/40 motion-reduce:hover:translate-y-0",
         isList ? "flex flex-row gap-4 p-3" : cn("flex flex-col", g?.card),
       )}
     >

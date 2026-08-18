@@ -324,7 +324,7 @@ export function LibraryView({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full px-4 py-6 sm:px-6 md:py-8 lg:px-10 xl:px-12">
       {/* Header */}
       <header className="mb-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -334,10 +334,10 @@ export function LibraryView({
             </span>
           )}
           <div className="flex items-baseline gap-3">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-primary">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-primary md:text-[28px]">
               {context.title}
             </h1>
-            <span className="text-sm text-muted">
+            <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 font-mono text-[12px] tabular-nums text-secondary">
               {total} {total === 1 ? "video" : "videos"}
             </span>
           </div>
@@ -350,7 +350,7 @@ export function LibraryView({
       </header>
 
       {/* Toolbar */}
-      <div className="mb-6 flex flex-wrap items-center gap-2.5">
+      <div className="sticky top-0 z-30 -mx-4 mb-6 flex flex-wrap items-center gap-2.5 border-b border-border/70 bg-base/85 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 xl:-mx-12 xl:px-12">
         <div className="relative min-w-0 flex-1 sm:max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
@@ -359,7 +359,7 @@ export function LibraryView({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search your library…"
             aria-label="Search videos"
-            className="h-10 w-full rounded-md border border-border bg-sunken pl-9 pr-8 text-sm text-primary placeholder:text-muted transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
+            className="h-10 w-full rounded-lg border border-border bg-sunken pl-9 pr-8 text-sm text-primary placeholder:text-muted transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
           {q && (
             <button
@@ -371,9 +371,11 @@ export function LibraryView({
               <X className="h-4 w-4" />
             </button>
           )}
-          <kbd className="pointer-events-none absolute right-8 top-1/2 hidden -translate-y-1/2 font-mono text-[10px] text-muted sm:block">
-            /
-          </kbd>
+          {!q && (
+            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-elevated px-1.5 py-0.5 font-mono text-[10px] text-muted sm:block">
+              /
+            </kbd>
+          )}
         </div>
 
         <div className="flex-1" />

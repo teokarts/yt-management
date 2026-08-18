@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { fetchAllTags } from "@/lib/library";
+import { fetchAllTagsWithCounts } from "@/lib/library";
 import { SettingsView } from "@/components/settings/settings-view";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Tag, Profile } from "@/types/database";
+import type { TagWithCount, Profile } from "@/types/database";
 
 export function SettingsPage() {
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<TagWithCount[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ export function SettingsPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
       const [tags, profileRes] = await Promise.all([
-        fetchAllTags(supabase, user.id),
+        fetchAllTagsWithCounts(supabase, user.id),
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
       ]);
       if (!active) return;

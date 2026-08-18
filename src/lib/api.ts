@@ -26,6 +26,20 @@ export interface ActionResult<T = undefined> {
   data?: T;
 }
 
+// Absolute URL Supabase should send auth emails back to.
+// In production the app is served from a subdirectory, so `origin` alone is not
+// enough — it would miss the base path and fail to match the allowed redirect
+// URLs. In local development we always use the running origin, otherwise the
+// configured production URL would bounce developers to the live site.
+export function authRedirectBase(): string {
+  if (import.meta.env.DEV) {
+    return window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+  }
+  return import.meta.env.VITE_APP_URL
+    ? import.meta.env.VITE_APP_URL.replace(/\/$/, "")
+    : window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+}
+
 async function currentUser() {
   const {
     data: { user },
@@ -114,10 +128,8 @@ export async function requestPasswordReset(input: {
   if (!email.success) {
     return { ok: false, error: "Enter a valid email address" };
   }
-const origin = import.meta.env.VITE_APP_URL || window.location.origin;
-
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
-    redirectTo: origin,
+    redirectTo: authRedirectBase(),
   });
 
   if (error) return { ok: false, error: error.message };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Pin, PinOff, Trash2, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, FieldLabel } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm";
@@ -10,7 +10,8 @@ import { updateProfile, pinTag, deleteTag, signOut } from "@/lib/api";
 import { useAppData } from "@/context/app-data-context";
 import { SORT_OPTIONS, CARD_DENSITIES } from "@/lib/constants";
 import type { SortOption, CardDensity } from "@/lib/constants";
-import type { Profile, Tag } from "@/types/database";
+import { TagCloud } from "@/components/tag/tag-cloud";
+import type { Profile, TagWithCount } from "@/types/database";
 
 export function SettingsView({
   profile,
@@ -19,7 +20,7 @@ export function SettingsView({
 }: {
   profile: Profile | null;
   email: string;
-  tags: Tag[];
+  tags: TagWithCount[];
 }) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,10 +32,10 @@ export function SettingsView({
   const [cardDensity, setCardDensity] = useState<CardDensity>(
     profile?.card_density ?? "comfortable",
   );
-  const [localTags, setLocalTags] = useState<Tag[]>(tags);
+  const [localTags, setLocalTags] = useState<TagWithCount[]>(tags);
   const [savingProfile, setSavingProfile] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
+  const [tagToDelete, setTagToDelete] = useState<TagWithCount | null>(null);
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +62,7 @@ export function SettingsView({
     await refresh();
   };
 
-  const togglePin = async (tag: Tag) => {
+  const togglePin = async (tag: TagWithCount) => {
     const res = await pinTag({ id: tag.id, isPinned: !tag.is_pinned });
     if (!res.ok) return toast("Could not update tag", { variant: "error" });
     setLocalTags((prev) =>
@@ -84,7 +85,7 @@ export function SettingsView({
   const initial = (displayName || email).slice(0, 1).toUpperCase();
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-8">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 md:px-8">
       <h1 className="font-display text-2xl font-bold tracking-tight text-primary">Settings</h1>
       <p className="mt-1 text-sm text-muted">Manage your profile and preferences.</p>
 
@@ -169,40 +170,22 @@ export function SettingsView({
         {/* Tags */}
         <section className="rounded-xl border border-border bg-elevated p-6">
           <h2 className="font-display text-sm font-semibold text-primary">Tags</h2>
-          <p className="mt-1 text-[13px] text-muted">
-            Pin tags to keep them visible in your sidebar. Pinned tags act as quick filters.
+          <p className="mt-1 text-[13px] leading-relaxed text-muted">
+            Sized by how often you use them. Select a tag to browse its videos, or hover to pin
+            it to your sidebar as a quick filter.
           </p>
           {localTags.length === 0 ? (
             <p className="mt-4 rounded-md border border-dashed border-border px-4 py-6 text-center text-[13px] text-muted">
               Tags you add to videos will appear here.
             </p>
           ) : (
-            <ul className="mt-4 divide-y divide-border">
-              {localTags.map((tag) => (
-                <li key={tag.id} className="flex items-center gap-3 py-2.5">
-                  <span className="flex-1 text-sm text-secondary">#{tag.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => togglePin(tag)}
-                    aria-pressed={tag.is_pinned}
-                    className={cn(tag.is_pinned && "text-accent-strong")}
-                  >
-                    {tag.is_pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
-                    {tag.is_pinned ? "Pinned" : "Pin"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setTagToDelete(tag)}
-                    aria-label={`Delete tag ${tag.name}`}
-                    className="text-muted hover:text-danger"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-5">
+              <TagCloud
+                tags={localTags}
+                onTogglePin={togglePin}
+                onDelete={setTagToDelete}
+              />
+            </div>
           )}
         </section>
 

@@ -1,5 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, VideoWithRelations, Category, Tag } from "@/types/database";
+import type {
+  Database,
+  VideoWithRelations,
+  Category,
+  Tag,
+  TagWithCount,
+} from "@/types/database";
 import { PAGE_SIZE } from "@/lib/constants";
 import type { SortOption, DateFilter, WatchStatus, CardDensity } from "@/lib/constants";
 
@@ -175,6 +181,30 @@ export async function fetchAllTags(supabase: DB, userId: string): Promise<Tag[]>
     .order("name", { ascending: true });
   if (error) throw error;
   return data ?? [];
+}
+
+/**
+ * All tags for a user with how many videos use each one. Powers the settings
+ * tag cloud, where the weight of a tag is what makes the cloud readable.
+ */
+export async function fetchAllTagsWithCounts(
+  supabase: DB,
+  userId: string,
+): Promise<TagWithCount[]> {
+  const { data, error } = await supabase
+    .from("tags")
+    .select("*, video_count:videos!video_tags(count)")
+    .eq("user_id", userId)
+    .order("name", { ascending: true });
+  if (error) throw error;
+
+  type Row = Tag & { video_count: { count: number }[] | { count: number } | number | null };
+  return ((data ?? []) as unknown as Row[]).map((t) => {
+    const raw = t.video_count;
+    const video_count =
+      typeof raw === "number" ? raw : Array.isArray(raw) ? (raw[0]?.count ?? 0) : (raw?.count ?? 0);
+    return { ...t, video_count } as TagWithCount;
+  });
 }
 
 export async function fetchDistinctChannels(

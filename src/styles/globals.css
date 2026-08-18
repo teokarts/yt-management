@@ -9,21 +9,21 @@
   --font-jetbrains: "JetBrains Mono Variable";
 
   /* Surface hierarchy */
-  --bg-base: #0c0d0f;
-  --bg-sidebar: #0f1113;
-  --bg-elevated: #16181c;
-  --bg-sunken: #090a0b;
-  --bg-hover: #1c1f24;
-  --bg-selected: #242830;
+  --bg-base: #08090b;
+  --bg-sidebar: #0c0e11;
+  --bg-elevated: #14161a;
+  --bg-sunken: #050607;
+  --bg-hover: #1b1e24;
+  --bg-selected: #23272f;
 
   /* Borders */
-  --border: #22252c;
-  --border-strong: #2e323b;
+  --border: #21242b;
+  --border-strong: #31353f;
 
-  /* Text */
-  --text-primary: #f1f0ec;
-  --text-secondary: #a9adb8;
-  --text-muted: #747a86;
+  /* Text — muted lifted to clear 4.5:1 on --bg-elevated */
+  --text-primary: #f4f3ef;
+  --text-secondary: #b0b4bf;
+  --text-muted: #868c99;
 
   /* Accent — warm ember gold */
   --accent: #e6b34c;
@@ -50,8 +50,10 @@
   --radius-xl: 20px;
 
   /* Shadows */
-  --shadow-elevated: 0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
-    0 8px 24px -8px rgba(0, 0, 0, 0.55);
+  --shadow-elevated: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 2px 6px -2px rgba(0, 0, 0, 0.5), 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --shadow-card-hover: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 4px 12px -3px rgba(0, 0, 0, 0.6), 0 20px 48px -16px rgba(0, 0, 0, 0.8);
   --shadow-pop: 0 12px 40px -8px rgba(0, 0, 0, 0.7),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset;
   --shadow-glow: 0 0 0 1px rgba(230, 179, 76, 0.35), 0 0 24px -6px rgba(230, 179, 76, 0.25);
@@ -95,6 +97,7 @@
   --radius-xl: var(--radius-xl);
 
   --shadow-elevated: var(--shadow-elevated);
+  --shadow-card-hover: var(--shadow-card-hover);
   --shadow-pop: var(--shadow-pop);
   --shadow-glow: var(--shadow-glow);
 }
