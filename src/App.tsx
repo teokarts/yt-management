@@ -35,7 +35,6 @@ const AdminProfilePage = lazy(() =>
   import("@/pages/admin/profile").then((m) => ({ default: m.AdminProfilePage })),
 );
 const HelpPage = lazy(() => import("@/pages/help").then((m) => ({ default: m.HelpPage })));
-const DeployPage = lazy(() => import("@/pages/deploy").then((m) => ({ default: m.DeployPage })));
 const NotFoundPage = lazy(() =>
   import("@/pages/not-found").then((m) => ({ default: m.NotFoundPage })),
 );
@@ -120,7 +119,6 @@ export default function App() {
               <Route path="/admin/profile" element={<AdminProfilePage />} />
             </Route>
             <Route path="/help" element={<HelpPage />} />
-            <Route path="/deploy" element={<DeployPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           </RouteLoader>

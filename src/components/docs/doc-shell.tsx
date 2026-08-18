@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
@@ -22,6 +23,12 @@ export function DocShell({
   description: string;
   sections: DocSection[];
 }) {
+  // HashRouter owns the URL hash, so a plain href="#id" would be parsed as a
+  // route and land on the 404 page. Scroll to the heading ourselves instead.
+  const scrollToSection = useCallback((id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   return (
     <div className="min-h-screen bg-base text-primary">
       <header className="sticky top-0 z-40 border-b border-border bg-base/80 backdrop-blur">
@@ -35,12 +42,6 @@ export function DocShell({
               className="rounded-md px-2.5 py-1.5 text-secondary transition-colors hover:bg-hover hover:text-primary"
             >
               Οδηγίες χρήσης
-            </Link>
-            <Link
-              to="/deploy"
-              className="rounded-md px-2.5 py-1.5 text-secondary transition-colors hover:bg-hover hover:text-primary"
-            >
-              Εγκατάσταση
             </Link>
             <Link to="/login">
               <Button variant="primary" size="sm">
@@ -77,12 +78,13 @@ export function DocShell({
             <ul className="space-y-1 border-l border-border">
               {sections.map((s) => (
                 <li key={s.id}>
-                  <a
-                    href={`#${s.id}`}
-                    className="-ml-px block border-l border-transparent py-1 pl-3 text-[13px] text-secondary transition-colors hover:border-accent hover:text-accent-strong"
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(s.id)}
+                    className="-ml-px block w-full border-l border-transparent py-1 pl-3 text-left text-[13px] text-secondary transition-colors hover:border-accent hover:text-accent-strong"
                   >
                     {s.title}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -110,8 +112,6 @@ export function DocShell({
             <Link to="/" className="transition-colors hover:text-primary">Αρχική</Link>
             {" · "}
             <Link to="/help" className="transition-colors hover:text-primary">Οδηγίες</Link>
-            {" · "}
-            <Link to="/deploy" className="transition-colors hover:text-primary">Εγκατάσταση</Link>
           </p>
         </div>
       </footer>

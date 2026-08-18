@@ -246,7 +246,6 @@ export function LandingPage() {
           </p>
           <div className="flex items-center gap-4 text-xs text-muted">
             <Link to="/help" className="transition-colors hover:text-primary">Οδηγίες χρήσης</Link>
-            <Link to="/deploy" className="transition-colors hover:text-primary">Εγκατάσταση</Link>
             <Link to="/login" className="transition-colors hover:text-primary">Sign in</Link>
             <Link to="/signup" className="transition-colors hover:text-primary">Sign up</Link>
           </div>

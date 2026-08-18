@@ -97,7 +97,7 @@ Because routing uses hash-based navigation (`/#/app`), no server-side rewrites a
 ## Key Folders
 
 ```
-src/pages/          routes (landing, auth, /app library/category/tag/video/settings, admin, help, deploy, 404)
+src/pages/          routes (landing, auth, /app library/category/tag/video/settings, admin, help, 404)
 src/components/     UI kit (ui/) + feature components (layout/, library/, video/, category/, tag/, settings/)
 src/context/        auth + app data providers
 src/lib/            supabase client, edge-function client, youtube parsing, library & sidebar loaders, validation, api mutations, utils
