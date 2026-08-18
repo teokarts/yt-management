@@ -1,8 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Heart,
   Clock,
@@ -32,7 +29,8 @@ import {
   refreshVideoMetadata,
   updateVideoFlags,
   updateVideoNotes,
-} from "@/app/actions/videos";
+} from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 
 export function VideoDetail({
   video,
@@ -47,8 +45,9 @@ export function VideoDetail({
   editMode: boolean;
   related?: VideoWithRelations[];
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { refresh } = useAppData();
   const [showEdit, setShowEdit] = useState(editMode);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRefresh, setConfirmRefresh] = useState(false);
@@ -58,12 +57,17 @@ export function VideoDetail({
   const [savingNotes, setSavingNotes] = useState(false);
   const [busyFlag, setBusyFlag] = useState(false);
 
+  const notifyChanged = async () => {
+    await refresh();
+    window.dispatchEvent(new CustomEvent("bookmarker:library-changed"));
+  };
+
   const toggleFavorite = async () => {
     setBusyFlag(true);
     const res = await updateVideoFlags({ videoId: video.id, isFavorite: !video.is_favorite });
     setBusyFlag(false);
     if (!res.ok) return toast("Could not update", { variant: "error" });
-    router.refresh();
+    await notifyChanged();
   };
 
   const toggleWatchLater = async () => {
@@ -71,13 +75,13 @@ export function VideoDetail({
     const res = await updateVideoFlags({ videoId: video.id, isWatchLater: !video.is_watch_later });
     setBusyFlag(false);
     if (!res.ok) return toast("Could not update", { variant: "error" });
-    router.refresh();
+    await notifyChanged();
   };
 
   const setStatus = async (s: "unwatched" | "watching" | "watched") => {
     const res = await updateVideoFlags({ videoId: video.id, watchStatus: s });
     if (!res.ok) return toast("Could not update status", { variant: "error" });
-    router.refresh();
+    await notifyChanged();
   };
 
   const copyUrl = async () => {
@@ -93,7 +97,8 @@ export function VideoDetail({
     const res = await deleteVideo({ videoId: video.id });
     if (!res.ok) return toast("Could not delete video", { variant: "error" });
     toast("Video removed");
-    router.push("/app");
+    await refresh();
+    navigate("/app");
   };
 
   const saveNotes = async () => {
@@ -102,7 +107,7 @@ export function VideoDetail({
     setSavingNotes(false);
     if (!res.ok) return toast("Could not save notes", { variant: "error" });
     toast("Notes saved");
-    router.refresh();
+    await notifyChanged();
   };
 
   const renderDescription = () => {
@@ -142,7 +147,7 @@ export function VideoDetail({
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8">
       <Link
-        href="/app"
+        to="/app"
         className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" /> Back to library
@@ -292,7 +297,7 @@ export function VideoDetail({
                 {video.categories.map((cat) => (
                   <Link
                     key={cat.id}
-                    href={`/app/category/${cat.slug}`}
+                    to={`/app/category/${cat.slug}`}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[12.5px] font-medium text-secondary transition-colors hover:border-border-strong hover:text-primary"
                   >
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color ?? "currentColor" }} />
@@ -323,7 +328,7 @@ export function VideoDetail({
                 {video.tags.map((tag) => (
                   <Link
                     key={tag.id}
-                    href={`/app/tag/${tag.slug}`}
+                    to={`/app/tag/${tag.slug}`}
                     className="rounded-full bg-accent-soft px-2.5 py-1 text-[12.5px] font-medium text-accent-strong transition-colors hover:bg-accent-soft-strong"
                   >
                     #{tag.name}
@@ -395,12 +400,11 @@ export function VideoDetail({
             {related.map((r) => (
               <Link
                 key={r.id}
-                href={`/app/video/${r.id}`}
+                to={`/app/video/${r.id}`}
                 className="group flex gap-3 rounded-lg border border-border bg-elevated p-2.5 transition-colors hover:border-border-strong"
               >
                 <div className="relative aspect-video w-28 shrink-0 overflow-hidden rounded-md bg-sunken">
                   {r.thumbnail_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={r.thumbnail_url}
                       alt=""
@@ -432,7 +436,7 @@ export function VideoDetail({
         open={showEdit}
         onClose={() => {
           setShowEdit(false);
-          router.replace(`/app/video/${video.id}`);
+          navigate(`/app/video/${video.id}`, { replace: true });
         }}
         video={video}
         categories={categories}
@@ -454,7 +458,7 @@ export function VideoDetail({
           const res = await refreshVideoMetadata({ videoId: video.id });
           if (!res.ok) return toast("Could not refresh metadata", { description: res.error, variant: "error" });
           toast("Metadata refreshed");
-          router.refresh();
+          await notifyChanged();
         }}
         title="Refresh metadata?"
         description="Re-fetches title, description, thumbnail and channel info from YouTube. Notes and organization are kept."

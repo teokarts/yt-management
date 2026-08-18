@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { useLocation } from "react-router-dom";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Logo } from "@/components/layout/logo";
 import { AddVideoDialog } from "@/components/library/add-video-dialog";
@@ -23,7 +21,7 @@ export interface AppShellData {
 export function AppShell({ data, children }: { data: AppShellData; children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {

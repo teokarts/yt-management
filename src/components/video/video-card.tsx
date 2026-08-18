@@ -1,9 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Play,
   Heart,
@@ -24,11 +20,8 @@ import { useToast } from "@/components/ui/toast";
 import { cn, formatDuration, relativeTime, truncate } from "@/lib/utils";
 import type { CardDensity } from "@/lib/constants";
 import type { VideoWithRelations } from "@/types/database";
-import {
-  deleteVideo,
-  refreshVideoMetadata,
-  updateVideoFlags,
-} from "@/app/actions/videos";
+import { deleteVideo, refreshVideoMetadata, updateVideoFlags } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 
 const statusStyles: Record<string, { label: string; className: string }> = {
   watched: { label: "Watched", className: "bg-success text-white" },
@@ -88,8 +81,9 @@ export function VideoCard({
   video: VideoWithRelations;
   density: CardDensity;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { refresh } = useAppData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRefresh, setConfirmRefresh] = useState(false);
 
@@ -100,13 +94,18 @@ export function VideoCard({
   const catLimit = isList ? 4 : catLimits[density];
   const tagLimit = isList ? 3 : tagLimits[density];
 
+  const notifyLibraryChanged = async () => {
+    await refresh();
+    window.dispatchEvent(new CustomEvent("bookmarker:library-changed"));
+  };
+
   const toggleFavorite = async () => {
     const res = await updateVideoFlags({ videoId: video.id, isFavorite: !video.is_favorite });
     if (!res.ok) {
       toast("Could not update favorite", { variant: "error" });
       return;
     }
-    router.refresh();
+    await notifyLibraryChanged();
   };
 
   const toggleWatchLater = async () => {
@@ -115,7 +114,7 @@ export function VideoCard({
       toast("Could not update watch later", { variant: "error" });
       return;
     }
-    router.refresh();
+    await notifyLibraryChanged();
   };
 
   const copyUrl = async () => {
@@ -134,14 +133,14 @@ export function VideoCard({
       return;
     }
     toast("Video removed", { description: truncate(video.title, 60) });
-    router.refresh();
+    await notifyLibraryChanged();
   };
 
   const menuItems: MenuItem[] = [
     {
       label: "Open in player",
       icon: <Play className="h-4 w-4" />,
-      onSelect: () => router.push(`/app/video/${video.id}`),
+      onSelect: () => navigate(`/app/video/${video.id}`),
     },
     {
       label: video.is_favorite ? "Remove from favorites" : "Add to favorites",
@@ -218,7 +217,7 @@ export function VideoCard({
       {video.categories.slice(0, catLimit).map((cat) => (
         <Link
           key={cat.id}
-          href={`/app/category/${cat.slug}`}
+          to={`/app/category/${cat.slug}`}
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 font-medium text-secondary transition-colors hover:border-border-strong hover:text-primary",
             chipClass,
@@ -234,7 +233,7 @@ export function VideoCard({
       {video.tags.slice(0, tagLimit).map((tag) => (
         <Link
           key={tag.id}
-          href={`/app/tag/${tag.slug}`}
+          to={`/app/tag/${tag.slug}`}
           className={cn("font-medium text-accent-strong/80 transition-colors hover:text-accent-strong", chipClass)}
         >
           #{tag.name}
@@ -260,18 +259,15 @@ export function VideoCard({
 
   const thumbnail = (className: string, playSize: string) => (
     <Link
-      href={`/app/video/${video.id}`}
+      to={`/app/video/${video.id}`}
       className={cn("relative block overflow-hidden rounded-md bg-sunken", className)}
       aria-label={`Play ${video.title}`}
     >
       {video.thumbnail_url ? (
-        <Image
+        <img
           src={video.thumbnail_url}
           alt=""
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
-          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          unoptimized={false}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
       ) : (
         <div className="flex h-full items-center justify-center text-muted">
@@ -325,7 +321,7 @@ export function VideoCard({
           <div className="flex min-w-0 flex-1 flex-col gap-1 py-1">
             <div className="flex items-start justify-between gap-2">
               <Link
-                href={`/app/video/${video.id}`}
+                to={`/app/video/${video.id}`}
                 className="line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-primary transition-colors hover:text-accent-strong"
               >
                 {video.title}
@@ -350,7 +346,7 @@ export function VideoCard({
           <div className={cn("flex flex-1 flex-col", g?.body)}>
             <div className="flex items-start justify-between gap-2">
               <Link
-                href={`/app/video/${video.id}`}
+                to={`/app/video/${video.id}`}
                 className={cn("line-clamp-2 flex-1 font-semibold leading-snug text-primary transition-colors hover:text-accent-strong", g?.title)}
               >
                 {video.title}
@@ -389,7 +385,7 @@ export function VideoCard({
             return;
           }
           toast("Metadata refreshed");
-          router.refresh();
+          await notifyLibraryChanged();
         }}
         title="Refresh metadata?"
         description="Re-fetches the title, description, thumbnail and channel info from YouTube. Your notes and organization are kept."

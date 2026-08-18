@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Suspense, useMemo, useState } from "react";
 import {
   Heart,
@@ -19,7 +18,7 @@ import { Logo } from "@/components/layout/logo";
 import { cn } from "@/lib/utils";
 import type { CategoryWithCount, TagWithCount } from "@/types/database";
 import { CategoryDialog } from "@/components/category/category-dialog";
-import { signOut } from "@/app/actions/auth";
+import { signOut } from "@/lib/api";
 
 interface SidebarProps {
   categories: CategoryWithCount[];
@@ -46,7 +45,7 @@ function NavItem({
 }) {
   return (
     <Link
-      href={href}
+      to={href}
       className={cn(
         "group flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors",
         active
@@ -105,8 +104,9 @@ function buildCategoryTree(categories: CategoryWithCount[]): CategoryNode[] {
 }
 
 function SidebarInner(props: SidebarProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [dialogParent, setDialogParent] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -144,6 +144,7 @@ function SidebarInner(props: SidebarProps) {
   const handleSignOut = async () => {
     setSigningOut(true);
     await signOut();
+    navigate("/");
   };
 
   const initial = (props.displayName ?? props.email).slice(0, 1).toUpperCase();
@@ -192,7 +193,7 @@ function SidebarInner(props: SidebarProps) {
             <span className="h-7 w-7 shrink-0" />
           )}
           <Link
-            href={`/app/category/${cat.slug}`}
+            to={`/app/category/${cat.slug}`}
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex min-w-0 flex-1 items-center gap-2.5 rounded-md py-2 text-[13.5px] transition-colors",
@@ -234,7 +235,7 @@ function SidebarInner(props: SidebarProps) {
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-sidebar">
       <div className="flex h-16 items-center px-5">
-        <Link href="/app" className="transition-opacity hover:opacity-90" aria-label="YouTube Bookmarker home">
+        <Link to="/app" className="transition-opacity hover:opacity-90" aria-label="YouTube Bookmarker home">
           <Logo />
         </Link>
       </div>
@@ -297,7 +298,7 @@ function SidebarInner(props: SidebarProps) {
               Pinned tags
             </p>
             <Link
-              href="/app/settings"
+              to="/app/settings"
               aria-label="Manage pinned tags"
               className="rounded p-1 text-muted transition-colors hover:bg-hover hover:text-accent"
             >
@@ -314,7 +315,7 @@ function SidebarInner(props: SidebarProps) {
             return (
               <Link
                 key={tag.id}
-                href={`/app/tag/${tag.slug}`}
+                to={`/app/tag/${tag.slug}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "group flex items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] transition-colors",
@@ -338,7 +339,7 @@ function SidebarInner(props: SidebarProps) {
 
       <div className="border-t border-border p-3">
         <Link
-          href="/app/settings"
+          to="/app/settings"
           className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors",
             pathname === "/app/settings"

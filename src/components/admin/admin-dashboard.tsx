@@ -1,8 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Users,
   Film,
@@ -18,7 +15,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "@/app/actions/auth";
+import { signOut } from "@/lib/api";
 import type {
   AdminStats,
   AdminUserRow,
@@ -269,17 +266,20 @@ function UsersTable({ users }: { users: AdminUserRow[] }) {
 export function AdminDashboard({
   stats,
   admin,
+  onRefresh,
 }: {
   stats: AdminStats;
   admin: { displayName: string | null; email: string };
+  onRefresh?: () => void;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { totals, periods, series, topUsers, users, recentActivity } = stats;
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
     setSigningOut(true);
     await signOut();
+    navigate("/");
   };
 
   const adminInitial = (admin.displayName || admin.email).slice(0, 1).toUpperCase();
@@ -303,11 +303,11 @@ export function AdminDashboard({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => router.refresh()}>
+          <Button variant="secondary" onClick={onRefresh}>
             <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
           <Link
-            href="/admin/profile"
+            to="/admin/profile"
             title="Admin profile"
             aria-label="Admin profile"
             className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-elevated text-[13px] font-bold text-accent-strong transition-colors hover:border-border-strong hover:bg-hover"

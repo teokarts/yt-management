@@ -1,14 +1,11 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, LogOut, Save, ShieldCheck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, FieldLabel } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
-import { updateProfile } from "@/app/actions/profile";
-import { signOut } from "@/app/actions/auth";
+import { updateProfile, signOut } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 
 export function AdminProfile({
   displayName,
@@ -17,8 +14,9 @@ export function AdminProfile({
   displayName: string | null;
   email: string;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { refresh } = useAppData();
   const [name, setName] = useState(displayName ?? "");
   const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -32,18 +30,19 @@ export function AdminProfile({
     setSaving(false);
     if (!res.ok) return toast("Could not save profile", { variant: "error" });
     toast("Profile saved");
-    router.refresh();
+    await refresh();
   };
 
   const handleSignOut = async () => {
     setSigningOut(true);
     await signOut();
+    navigate("/");
   };
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6 md:px-8 md:py-8">
       <Link
-        href="/admin"
+        to="/admin"
         className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" /> Back to overview

@@ -1,16 +1,13 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { LogOut, Pin, PinOff, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, FieldLabel } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
-import { updateProfile } from "@/app/actions/profile";
-import { pinTag, deleteTag } from "@/app/actions/tags";
-import { signOut } from "@/app/actions/auth";
+import { updateProfile, pinTag, deleteTag, signOut } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 import { SORT_OPTIONS, CARD_DENSITIES } from "@/lib/constants";
 import type { SortOption, CardDensity } from "@/lib/constants";
 import type { Profile, Tag } from "@/types/database";
@@ -24,9 +21,17 @@ export function SettingsView({
   email: string;
   tags: Tag[];
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { refresh } = useAppData();
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [defaultSort, setDefaultSort] = useState<SortOption>(
+    (profile?.default_sort as SortOption) ?? "recently_added",
+  );
+  const [cardDensity, setCardDensity] = useState<CardDensity>(
+    profile?.card_density ?? "comfortable",
+  );
+  const [localTags, setLocalTags] = useState<Tag[]>(tags);
   const [savingProfile, setSavingProfile] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
@@ -38,35 +43,42 @@ export function SettingsView({
     setSavingProfile(false);
     if (!res.ok) return toast("Could not save profile", { variant: "error" });
     toast("Profile saved");
-    router.refresh();
+    await refresh();
   };
 
   const changeSort = async (value: string) => {
     const res = await updateProfile({ defaultSort: value });
     if (!res.ok) return toast("Could not save setting", { variant: "error" });
-    router.refresh();
+    setDefaultSort(value as SortOption);
+    await refresh();
   };
 
   const changeDensity = async (value: CardDensity) => {
     const res = await updateProfile({ cardDensity: value });
     if (!res.ok) return toast("Could not save setting", { variant: "error" });
+    setCardDensity(value);
     toast("Card density updated");
-    router.refresh();
+    await refresh();
   };
 
   const togglePin = async (tag: Tag) => {
     const res = await pinTag({ id: tag.id, isPinned: !tag.is_pinned });
     if (!res.ok) return toast("Could not update tag", { variant: "error" });
+    setLocalTags((prev) =>
+      prev.map((t) => (t.id === tag.id ? { ...t, is_pinned: !tag.is_pinned } : t)),
+    );
     toast(tag.is_pinned ? "Tag unpinned" : "Tag pinned to sidebar");
-    router.refresh();
+    await refresh();
   };
 
   const handleDeleteTag = async () => {
     if (!tagToDelete) return;
     const res = await deleteTag({ id: tagToDelete.id });
     if (!res.ok) return toast("Could not delete tag", { variant: "error" });
+    setLocalTags((prev) => prev.filter((t) => t.id !== tagToDelete.id));
+    setTagToDelete(null);
     toast("Tag deleted");
-    router.refresh();
+    await refresh();
   };
 
   const initial = (displayName || email).slice(0, 1).toUpperCase();
@@ -118,7 +130,7 @@ export function SettingsView({
               <FieldLabel htmlFor="default-sort">Default sorting</FieldLabel>
               <select
                 id="default-sort"
-                value={profile?.default_sort ?? "recently_added"}
+                value={defaultSort}
                 onChange={(e) => changeSort(e.target.value as SortOption)}
                 className="h-10 w-full rounded-md border border-border bg-sunken px-3 text-sm text-primary transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none"
               >
@@ -137,10 +149,10 @@ export function SettingsView({
                     key={d.value}
                     type="button"
                     onClick={() => changeDensity(d.value as CardDensity)}
-                    aria-pressed={(profile?.card_density ?? "comfortable") === d.value}
+                    aria-pressed={cardDensity === d.value}
                     className={cn(
                       "rounded-lg border p-3 text-left transition-colors",
-                      (profile?.card_density ?? "comfortable") === d.value
+                      cardDensity === d.value
                         ? "border-accent/60 bg-accent-soft"
                         : "border-border hover:border-border-strong",
                     )}
@@ -160,13 +172,13 @@ export function SettingsView({
           <p className="mt-1 text-[13px] text-muted">
             Pin tags to keep them visible in your sidebar. Pinned tags act as quick filters.
           </p>
-          {tags.length === 0 ? (
+          {localTags.length === 0 ? (
             <p className="mt-4 rounded-md border border-dashed border-border px-4 py-6 text-center text-[13px] text-muted">
               Tags you add to videos will appear here.
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-border">
-              {tags.map((tag) => (
+              {localTags.map((tag) => (
                 <li key={tag.id} className="flex items-center gap-3 py-2.5">
                   <span className="flex-1 text-sm text-secondary">#{tag.name}</span>
                   <Button
@@ -206,6 +218,7 @@ export function SettingsView({
               onClick={async () => {
                 setSigningOut(true);
                 await signOut();
+                navigate("/");
               }}
               loading={signingOut}
             >

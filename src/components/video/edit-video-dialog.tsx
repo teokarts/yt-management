@@ -1,7 +1,4 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Textarea, FieldLabel } from "@/components/ui/input";
@@ -9,10 +6,8 @@ import { useToast } from "@/components/ui/toast";
 import { CategoryPicker } from "@/components/category/category-picker";
 import { TagInput } from "@/components/tag/tag-input";
 import type { Category, Tag, VideoWithRelations } from "@/types/database";
-import {
-  updateVideoNotes,
-  updateVideoOrganization,
-} from "@/app/actions/videos";
+import { updateVideoNotes, updateVideoOrganization } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 
 export function EditVideoDialog({
   open,
@@ -27,7 +22,7 @@ export function EditVideoDialog({
   categories: Category[];
   tags: Tag[];
 }) {
-  const router = useRouter();
+  const { refresh } = useAppData();
   const { toast } = useToast();
   const [categoryIds, setCategoryIds] = useState(video.categories.map((c) => c.id));
   const [tagNames, setTagNames] = useState(video.tags.map((t) => t.name));
@@ -47,7 +42,8 @@ export function EditVideoDialog({
     }
     toast("Changes saved");
     onClose();
-    router.refresh();
+    await refresh();
+    window.dispatchEvent(new CustomEvent("bookmarker:library-changed"));
   };
 
   return (

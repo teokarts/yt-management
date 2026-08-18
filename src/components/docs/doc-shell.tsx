@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { Button } from "@/components/ui/button";
@@ -26,23 +26,23 @@ export function DocShell({
     <div className="min-h-screen bg-base text-primary">
       <header className="sticky top-0 z-40 border-b border-border bg-base/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link href="/" aria-label="Home">
+          <Link to="/" aria-label="Home">
             <Logo />
           </Link>
           <nav className="flex items-center gap-1.5 text-[13px]">
             <Link
-              href="/help"
+              to="/help"
               className="rounded-md px-2.5 py-1.5 text-secondary transition-colors hover:bg-hover hover:text-primary"
             >
               Οδηγίες χρήσης
             </Link>
             <Link
-              href="/deploy"
+              to="/deploy"
               className="rounded-md px-2.5 py-1.5 text-secondary transition-colors hover:bg-hover hover:text-primary"
             >
               Εγκατάσταση
             </Link>
-            <Link href="/login">
+            <Link to="/login">
               <Button variant="primary" size="sm">
                 Σύνδεση
               </Button>
@@ -53,7 +53,7 @@ export function DocShell({
 
       <div className="mx-auto w-full max-w-5xl px-5 py-10 md:py-14">
         <Link
-          href={backHref}
+          to={backHref}
           className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" /> {backLabel}
@@ -107,11 +107,11 @@ export function DocShell({
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-5 py-6 sm:flex-row">
           <Logo showWordmark={false} />
           <p className="text-xs text-muted">
-            <Link href="/" className="transition-colors hover:text-primary">Αρχική</Link>
+            <Link to="/" className="transition-colors hover:text-primary">Αρχική</Link>
             {" · "}
-            <Link href="/help" className="transition-colors hover:text-primary">Οδηγίες</Link>
+            <Link to="/help" className="transition-colors hover:text-primary">Οδηγίες</Link>
             {" · "}
-            <Link href="/deploy" className="transition-colors hover:text-primary">Εγκατάσταση</Link>
+            <Link to="/deploy" className="transition-colors hover:text-primary">Εγκατάσταση</Link>
           </p>
         </div>
       </footer>

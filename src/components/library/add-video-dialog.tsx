@@ -1,9 +1,4 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Calendar,
   Check,
@@ -22,8 +17,8 @@ import { Input, Textarea, FieldLabel, FieldError } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { CategoryPicker } from "@/components/category/category-picker";
 import { TagInput } from "@/components/tag/tag-input";
-import { addVideo, getYouTubeMetadata, updateVideoOrganization } from "@/app/actions/videos";
-import { createCategory } from "@/app/actions/categories";
+import { addVideo, getYouTubeMetadata, updateVideoOrganization, createCategory } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 import type { YouTubeMetadata } from "@/lib/youtube/api";
 import { formatDuration, formatDate, slugify, cn } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/icons";
@@ -39,7 +34,7 @@ interface AddVideoDialogProps {
 type Stage = "url" | "loading" | "preview" | "saving";
 
 export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDialogProps) {
-  const router = useRouter();
+  const { refresh } = useAppData();
   const { toast } = useToast();
   const [stage, setStage] = useState<Stage>("url");
   const [url, setUrl] = useState("");
@@ -136,7 +131,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
     setNewCatName("");
     setShowNewCategory(false);
     toast("Category created", { description: newCat.name });
-    router.refresh();
+    refresh();
   };
 
   const handleSave = async () => {
@@ -168,7 +163,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
 
     toast("Video saved", { description: metadata.title });
     onClose();
-    router.refresh();
+    refresh();
   };
 
   const handleDuplicateUpdate = async () => {
@@ -186,7 +181,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
     }
     toast("Video updated", { description: duplicate.title });
     onClose();
-    router.refresh();
+    refresh();
   };
 
   const canSave = metadata != null;
@@ -252,12 +247,10 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
             <div className="space-y-4">
               <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-sunken">
                 {metadata?.thumbnailUrl ? (
-                  <Image
+                  <img
                     src={metadata.thumbnailUrl}
                     alt=""
-                    fill
-                    sizes="(max-width: 768px) 100vw, 560px"
-                    className="object-cover"
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center bg-elevated text-muted">
@@ -494,9 +487,9 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
               </Button>
             )}
             {!duplicate && (
-              <Link href={url} target="_blank" rel="noopener noreferrer">
+              <a href={url} target="_blank" rel="noopener noreferrer">
                 <Button variant="ghost">Open on YouTube</Button>
-              </Link>
+              </a>
             )}
           </div>
         </div>

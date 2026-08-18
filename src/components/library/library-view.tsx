@@ -1,7 +1,5 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   SlidersHorizontal,
@@ -25,8 +23,8 @@ import { EditVideoDialog } from "@/components/video/edit-video-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
-import { loadMoreVideos } from "@/app/actions/videos";
-import { updateProfile } from "@/app/actions/profile";
+import { loadMoreVideos, updateProfile } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 import {
   SORT_OPTIONS,
   DATE_FILTERS,
@@ -76,8 +74,9 @@ export function LibraryView({
   density,
   defaultSort,
 }: LibraryViewProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { refresh } = useAppData();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [videos, setVideos] = useState<VideoWithRelations[]>(initial.videos);
@@ -85,6 +84,7 @@ export function LibraryView({
   const [hasMore, setHasMore] = useState(initial.hasMore);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [currentDensity, setCurrentDensity] = useState<CardDensity>(density);
 
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
@@ -209,6 +209,12 @@ export function LibraryView({
     return () => window.removeEventListener("bookmarker:edit-video", onEditVideo);
   }, [videos]);
 
+  useEffect(() => {
+    const onLibraryChanged = () => runSearch();
+    window.addEventListener("bookmarker:library-changed", onLibraryChanged);
+    return () => window.removeEventListener("bookmarker:library-changed", onLibraryChanged);
+  }, [runSearch]);
+
   const activeFilterCount =
     (debouncedQ ? 1 : 0) +
     (extraTagIds.length ? 1 : 0) +
@@ -228,8 +234,9 @@ export function LibraryView({
   const changeDensity = async (value: CardDensity) => {
     const res = await updateProfile({ cardDensity: value });
     if (!res.ok) return toast("Could not save setting", { variant: "error" });
+    setCurrentDensity(value);
     toast("Layout updated");
-    router.refresh();
+    await refresh();
   };
 
   const activeClientFilters: { id: string; label: string; clear: () => void }[] = [];
@@ -431,9 +438,9 @@ export function LibraryView({
               aria-haspopup="menu"
               aria-label="Card layout"
             >
-              {DENSITY_ICONS[density]}
+              {DENSITY_ICONS[currentDensity]}
               <span className="hidden sm:inline">
-                {CARD_DENSITIES.find((d) => d.value === density)?.label}
+                {CARD_DENSITIES.find((d) => d.value === currentDensity)?.label}
               </span>
               <ChevronDown
                 className={cn("h-4 w-4 text-muted transition-transform", open && "rotate-180")}
@@ -444,7 +451,7 @@ export function LibraryView({
             label: d.label,
             onSelect: () => changeDensity(d.value),
             icon: DENSITY_ICONS[d.value],
-            active: density === d.value,
+            active: currentDensity === d.value,
           }))}
         />
 
@@ -494,7 +501,7 @@ export function LibraryView({
           )}
           <button
             type="button"
-            onClick={() => router.push("/app")}
+            onClick={() => navigate("/app")}
             className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-muted transition-colors hover:text-primary"
           >
             <X className="h-3 w-3" /> Clear
@@ -575,7 +582,7 @@ export function LibraryView({
         />
       ) : (
         <>
-          <VideoGrid videos={videos} density={density} />
+          <VideoGrid videos={videos} density={currentDensity} />
           {hasMore && (
             <div className="mt-8 flex justify-center">
               <Button variant="secondary" onClick={loadMore} loading={loadingMore}>

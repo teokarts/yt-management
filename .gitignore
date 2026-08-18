@@ -48,3 +48,5 @@ supabase/migrations/20240101000000_initial_schema.sql
 supabase/migrations/20240101000000_initial_schema.sql
 supabase/migrations/20240101000000_initial_schema.sql
 supabase/migrations/20240101000002_add_list_density.sql
+
+dist

@@ -1,3 +1,5 @@
+import { callEdge, EdgeFunctionError } from "@/lib/edge";
+
 export interface YouTubeMetadata {
   videoId: string;
   title: string;
@@ -19,98 +21,25 @@ export class YouTubeApiError extends Error {
   }
 }
 
-const API_BASE = "https://www.googleapis.com/youtube/v3";
-
-function pickThumbnail(thumbnails: Record<string, { url: string }> | undefined): string {
-  if (!thumbnails) return "";
-  const order = ["maxres", "standard", "high", "medium", "default"] as const;
-  for (const size of order) {
-    const t = thumbnails[size];
-    if (t?.url) return t.url;
-  }
-  return "";
-}
-
-export async function fetchVideoMetadata(
-  videoId: string,
-  apiKey: string,
-): Promise<YouTubeMetadata> {
-  if (!apiKey) {
-    throw new YouTubeApiError("api", "YouTube API key is not configured.");
-  }
-
-  const params = new URLSearchParams({
-    part: "snippet,contentDetails,statistics",
-    id: videoId,
-    key: apiKey,
-  });
-
-  let response: Response;
+export async function fetchVideoMetadata(videoId: string): Promise<YouTubeMetadata> {
+  let metadata: YouTubeMetadata;
   try {
-    response = await fetch(`${API_BASE}/videos?${params.toString()}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 300 },
-    });
-  } catch {
-    throw new YouTubeApiError("network", "Could not reach the YouTube API.");
+    metadata = await callEdge<YouTubeMetadata>("youtube-metadata", { videoId });
+  } catch (err) {
+    if (err instanceof EdgeFunctionError) {
+      const message = err.message;
+      if (/quota/i.test(message)) throw new YouTubeApiError("quota", message);
+      if (/could not be found|private|region-locked|deleted/i.test(message)) {
+        throw new YouTubeApiError("not_found", message);
+      }
+      if (/invalid YouTube URL|valid YouTube/i.test(message)) {
+        throw new YouTubeApiError("api", message);
+      }
+      if (/network|reach/i.test(message)) throw new YouTubeApiError("network", message);
+      throw new YouTubeApiError("api", message);
+    }
+    throw new YouTubeApiError("network", "Could not reach the metadata service.");
   }
 
-  if (response.status === 403 || response.status === 429) {
-    throw new YouTubeApiError(
-      "quota",
-      "The YouTube API quota has been exceeded for today. Try again later.",
-    );
-  }
-
-  if (!response.ok) {
-    throw new YouTubeApiError("api", `YouTube API returned status ${response.status}.`);
-  }
-
-  let data: {
-    items?: Array<{
-      id?: string;
-      snippet?: {
-        title?: string;
-        description?: string;
-        channelTitle?: string;
-        channelId?: string;
-        publishedAt?: string;
-        thumbnails?: Record<string, { url: string }>;
-      };
-      contentDetails?: { duration?: string };
-      statistics?: { viewCount?: string };
-    }>;
-    error?: { message?: string };
-  };
-  try {
-    data = await response.json();
-  } catch {
-    throw new YouTubeApiError("api", "YouTube API returned malformed JSON.");
-  }
-
-  if (data.error?.message) {
-    throw new YouTubeApiError("api", data.error.message);
-  }
-
-  const item = data.items?.[0];
-  if (!item?.id || !item.snippet?.title) {
-    throw new YouTubeApiError(
-      "not_found",
-      "This video could not be found. It may be private, region-locked, or deleted.",
-    );
-  }
-
-  return {
-    videoId: item.id,
-    title: item.snippet.title || "Untitled video",
-    description: item.snippet.description || "",
-    thumbnailUrl: pickThumbnail(item.snippet.thumbnails),
-    channelName: item.snippet.channelTitle || "Unknown channel",
-    channelId: item.snippet.channelId || "",
-    publishedAt: item.snippet.publishedAt || null,
-    duration: item.contentDetails?.duration || null,
-    viewCount: item.statistics?.viewCount
-      ? Number(item.statistics.viewCount)
-      : undefined,
-  };
+  return metadata;
 }

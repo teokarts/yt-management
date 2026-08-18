@@ -1,11 +1,10 @@
-"use client";
-
 import { useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, FieldLabel, FieldError } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
-import { createCategory, renameCategory } from "@/app/actions/categories";
+import { createCategory, renameCategory } from "@/lib/api";
+import { useAppData } from "@/context/app-data-context";
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_ICON_KEYS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { Category, CategoryWithCount } from "@/types/database";
@@ -66,6 +65,7 @@ export function CategoryDialog({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { refresh } = useAppData();
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
@@ -137,6 +137,7 @@ export function CategoryDialog({
         }
         toast(parentId ? "Subcategory created" : "Category created", { description: name.trim() });
       }
+      await refresh();
       setName("");
       setDescription("");
       setColor(CATEGORY_COLORS[0]);
