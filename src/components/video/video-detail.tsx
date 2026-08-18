@@ -15,6 +15,7 @@ import {
   FolderOpen,
   StickyNote,
   ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
@@ -31,6 +32,7 @@ import {
   updateVideoNotes,
 } from "@/lib/api";
 import { useAppData } from "@/context/app-data-context";
+import { getCategoryPath } from "@/lib/categories";
 
 export function VideoDetail({
   video,
@@ -293,18 +295,41 @@ export function VideoDetail({
                 </button>
               </p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {video.categories.map((cat) => (
-                  <Link
-                    key={cat.id}
-                    to={`/app/category/${cat.slug}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[12.5px] font-medium text-secondary transition-colors hover:border-border-strong hover:text-primary"
-                  >
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color ?? "currentColor" }} />
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
+              <ul className="space-y-2">
+                {video.categories.map((cat) => {
+                  const path = getCategoryPath(cat.id, categories);
+                  const chain = path.length > 0 ? path : [cat];
+                  return (
+                    <li key={cat.id} className="flex flex-wrap items-center gap-x-1 gap-y-1">
+                      {chain.map((node, i) => {
+                        const isLeaf = i === chain.length - 1;
+                        return (
+                          <span key={node.id} className="inline-flex items-center gap-1">
+                            {i > 0 && (
+                              <ChevronRight className="h-3 w-3 shrink-0 text-muted" aria-hidden />
+                            )}
+                            <Link
+                              to={`/app/category/${node.slug}`}
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12.5px] transition-colors",
+                                isLeaf
+                                  ? "border-border font-medium text-secondary hover:border-border-strong hover:text-primary"
+                                  : "border-transparent bg-sunken font-normal text-muted hover:text-secondary",
+                              )}
+                            >
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: node.color ?? "currentColor" }}
+                              />
+                              {node.name}
+                            </Link>
+                          </span>
+                        );
+                      })}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </section>
 

@@ -15,7 +15,11 @@ export function VideoPlayer({
 }) {
   const [ready, setReady] = useState(false);
 
-  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1${
+  // No `modestbranding` — it is deprecated and now yields a stripped control
+  // bar with no CC / volume / settings buttons. Omitting it restores the full
+  // YouTube chrome. `cc_load_policy=0` keeps captions off unless the viewer
+  // turns them on from that bar.
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&controls=1&cc_load_policy=0${
     autoplay || ready ? "&autoplay=1" : ""
   }`;
 
