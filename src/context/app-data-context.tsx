@@ -70,12 +70,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     } = await supabase.auth.getUser();
     if (!user) return;
 
+    // A failure here must not degrade into a silently empty sidebar — that
+    // renders as "No categories yet" and looks like real, missing data.
     const [sidebarData, categories, tags, profileRes] = await Promise.all([
       loadSidebarData(supabase, user.id),
       fetchAllCategories(supabase, user.id),
       fetchAllTags(supabase, user.id),
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-    ]);
+    ]).catch((err) => {
+      console.error("Failed to load app data", err);
+      throw err;
+    });
 
     if (!mounted.current) return;
 
@@ -95,9 +100,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mounted.current = true;
-    refresh().finally(() => {
-      if (mounted.current) setLoading(false);
-    });
+    refresh()
+      .catch(() => {
+        // Already logged in refresh(); swallow here so the initial mount does
+        // not raise an unhandled rejection.
+      })
+      .finally(() => {
+        if (mounted.current) setLoading(false);
+      });
     return () => {
       mounted.current = false;
     };
