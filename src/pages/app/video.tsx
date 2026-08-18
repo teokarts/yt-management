@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SearchX } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -29,6 +29,7 @@ export function VideoPage() {
   const [related, setRelated] = useState<VideoWithRelations[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const loadedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const onChanged = () => setReloadKey((k) => k + 1);
@@ -41,7 +42,13 @@ export function VideoPage() {
     let active = true;
     (async () => {
       setNotFound(false);
-      setVideo(null);
+      // Only blank out on a genuine navigation to another video. A background
+      // refetch of the same video must keep the current data on screen,
+      // otherwise the whole page (player included) flashes back to a skeleton.
+      if (loadedIdRef.current !== id) {
+        setVideo(null);
+        setRelated([]);
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -68,6 +75,7 @@ export function VideoPage() {
           : Promise.resolve(null),
       ]);
       if (!active) return;
+      loadedIdRef.current = id;
       setCategories(categories);
       setTags(tags);
       setRelated((relatedPage?.videos ?? []).filter((v) => v.id !== id).slice(0, 8));
@@ -93,7 +101,6 @@ export function VideoPage() {
 
   return (
     <VideoDetail
-      key={`${id}-${reloadKey}`}
       video={video}
       categories={categories}
       tags={tags}

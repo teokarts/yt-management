@@ -62,7 +62,6 @@ export function LibraryPage() {
       context={context}
       categories={data.categories}
       tags={data.tags}
-      channels={data.channels}
       density={data.density}
       defaultSort={data.defaultSort}
     />

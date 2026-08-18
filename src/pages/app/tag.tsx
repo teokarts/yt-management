@@ -68,7 +68,6 @@ export function TagPage() {
       }}
       categories={data.categories}
       tags={data.tags}
-      channels={data.channels}
       density={data.density}
       defaultSort={data.defaultSort}
     />

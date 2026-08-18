@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,10 @@ export interface MenuItem {
   active?: boolean;
 }
 
+const MENU_WIDTH = 220;
+const GAP = 6;
+const MARGIN = 8;
+
 export function DropdownMenu({
   trigger,
   items,
@@ -28,24 +32,53 @@ export function DropdownMenu({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+    maxHeight: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const toggle = useCallback(() => setOpen((v) => !v), []);
   const close = useCallback(() => setOpen(false), []);
 
-  useEffect(() => {
-    if (!open) return;
+  const reposition = useCallback(() => {
     const triggerEl = containerRef.current?.querySelector<HTMLElement>("[data-menu-trigger]");
     if (!triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
-    const menuWidth = 220;
-    const left =
-      align === "end"
-        ? Math.min(window.innerWidth - menuWidth - 8, rect.right)
-        : Math.max(8, rect.left);
-    setPosition({ top: rect.bottom + 6, left });
+
+    // "end" aligns the menu's right edge with the trigger's, so it grows
+    // leftwards from rect.right — anchoring `left` there instead pushes the
+    // whole menu a full width past the button.
+    const preferredLeft = align === "end" ? rect.right - MENU_WIDTH : rect.left;
+    const maxLeft = Math.max(MARGIN, window.innerWidth - MENU_WIDTH - MARGIN);
+    const left = Math.min(Math.max(MARGIN, preferredLeft), maxLeft);
+
+    // Flip above the trigger when the menu would spill past the viewport
+    // bottom, but only if there is genuinely more headroom up there. The
+    // height is only known after the first paint, hence the layout pass below.
+    // scrollHeight, not offsetHeight: the applied maxHeight clamps offsetHeight,
+    // which would make each pass measure a different value and oscillate.
+    const menuHeight = menuRef.current?.scrollHeight ?? 0;
+    const spaceBelow = window.innerHeight - rect.bottom - GAP - MARGIN;
+    const spaceAbove = rect.top - GAP - MARGIN;
+    const flipUp = menuHeight > 0 && menuHeight > spaceBelow && spaceAbove > spaceBelow;
+    const top = flipUp ? Math.max(MARGIN, rect.top - GAP - menuHeight) : rect.bottom + GAP;
+    // A long list (every channel in the library) must scroll inside the menu
+    // rather than run off the bottom of the screen.
+    const maxHeight = Math.max(120, flipUp ? spaceAbove : spaceBelow);
+
+    setPosition((prev) =>
+      prev && prev.top === top && prev.left === left && prev.maxHeight === maxHeight
+        ? prev
+        : { top, left, maxHeight },
+    );
+  }, [align]);
+
+  useEffect(() => {
+    if (!open) return;
+    reposition();
 
     const onPointerDown = (e: PointerEvent) => {
       if (menuRef.current?.contains(e.target as Node)) return;
@@ -58,16 +91,26 @@ export function DropdownMenu({
         close();
       }
     };
+    // The menu is fixed-positioned, so it cannot follow a scrolling trigger.
     const onScroll = () => close();
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
-    window.addEventListener("resize", onScroll);
+    document.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", reposition);
     return () => {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("resize", onScroll);
+      document.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", reposition);
     };
-  }, [open, align, close]);
+  }, [open, close, reposition]);
+
+  // The first pass runs before the portal exists, so the menu height is still
+  // unknown. Measure once it is mounted and correct the placement if needed.
+  useLayoutEffect(() => {
+    if (!open || !position) return;
+    reposition();
+  }, [open, position, reposition]);
 
   return (
     <div ref={containerRef} className="relative inline-flex">
@@ -78,8 +121,8 @@ export function DropdownMenu({
               ref={menuRef}
               role="menu"
               aria-label={label}
-              className="animate-scale-in fixed z-[70] w-[220px] rounded-lg border border-border-strong bg-elevated py-1.5 shadow-pop"
-              style={{ top: position.top, left: position.left }}
+              className="animate-scale-in fixed z-[70] w-[220px] overflow-y-auto overscroll-contain rounded-lg border border-border-strong bg-elevated py-1.5 shadow-pop"
+              style={{ top: position.top, left: position.left, maxHeight: position.maxHeight }}
             >
               {items.map((item, i) => (
                 <div key={i}>

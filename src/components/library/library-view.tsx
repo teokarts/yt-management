@@ -60,7 +60,6 @@ interface LibraryViewProps {
   context: LibraryContext;
   categories: Category[];
   tags: Tag[];
-  channels: string[];
   density: CardDensity;
   defaultSort: SortOption;
 }
@@ -70,7 +69,6 @@ export function LibraryView({
   context,
   categories,
   tags,
-  channels,
   density,
   defaultSort,
 }: LibraryViewProps) {
@@ -91,7 +89,6 @@ export function LibraryView({
   const [extraTagIds, setExtraTagIds] = useState<string[]>([]);
   const [status, setStatus] = useState<WatchStatus | undefined>();
   const [added, setAdded] = useState<DateFilter>("all");
-  const [channel, setChannel] = useState<string | undefined>();
   const [sort, setSort] = useState<SortOption>(defaultSort);
   const [editingVideo, setEditingVideo] = useState<VideoWithRelations | null>(null);
 
@@ -102,8 +99,7 @@ export function LibraryView({
       debouncedQ.trim() !== "" ||
       extraTagIds.length > 0 ||
       !!status ||
-      added !== "all" ||
-      !!channel;
+      added !== "all";
     if (!hasClientFilters) {
       setVideos(initial.videos);
       setTotal(initial.total);
@@ -122,14 +118,13 @@ export function LibraryView({
           : extraTagIds.length
             ? extraTagIds
             : undefined,
-      channelId: channel,
       added,
       status,
       favorite: context.favorite || undefined,
       watchLater: context.watchLater || undefined,
       sort,
     }),
-    [debouncedQ, context.baseCategoryIds, context.baseTagIds, context.favorite, context.watchLater, extraTagIds, channel, added, status, sort],
+    [debouncedQ, context.baseCategoryIds, context.baseTagIds, context.favorite, context.watchLater, extraTagIds, added, status, sort],
   );
 
   const fetchPage = useCallback(
@@ -219,8 +214,7 @@ export function LibraryView({
     (debouncedQ ? 1 : 0) +
     (extraTagIds.length ? 1 : 0) +
     (status ? 1 : 0) +
-    (added !== "all" ? 1 : 0) +
-    (channel ? 1 : 0);
+    (added !== "all" ? 1 : 0);
 
   const clearAll = () => {
     setQ("");
@@ -228,7 +222,6 @@ export function LibraryView({
     setExtraTagIds([]);
     setStatus(undefined);
     setAdded("all");
-    setChannel(undefined);
   };
 
   const changeDensity = async (value: CardDensity) => {
@@ -252,13 +245,6 @@ export function LibraryView({
       id: "added",
       label: `Added: ${DATE_FILTERS.find((d) => d.value === added)?.label}`,
       clear: () => setAdded("all"),
-    });
-  }
-  if (channel) {
-    activeClientFilters.push({
-      id: `channel-${channel}`,
-      label: `Channel: ${channel}`,
-      clear: () => setChannel(undefined),
     });
   }
   for (const id of extraTagIds) {
@@ -307,17 +293,6 @@ export function LibraryView({
       onSelect: () => setAdded(added === d.value ? "all" : d.value),
       active: added === d.value,
     })),
-    ...(channels.length > 0
-      ? ([
-          { separator: true },
-          { label: "Channel", disabled: true, icon: <span className="text-muted">—</span> },
-          ...channels.map((c) => ({
-            label: c,
-            onSelect: () => setChannel(channel === c ? undefined : c),
-            active: channel === c,
-          })),
-        ] as MenuItem[])
-      : []),
     ...(activeFilterCount > 0
       ? [{ separator: true }, { label: "Clear filters", danger: true, onSelect: clearAll }]
       : []),

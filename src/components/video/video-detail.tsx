@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Heart,
@@ -35,7 +35,7 @@ import { useAppData } from "@/context/app-data-context";
 import { getCategoryPath } from "@/lib/categories";
 
 export function VideoDetail({
-  video,
+  video: videoProp,
   categories,
   tags,
   editMode,
@@ -50,40 +50,81 @@ export function VideoDetail({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { refresh } = useAppData();
+  // Notes and flags are edited in place. Keeping a local copy lets a save land
+  // instantly without a page-level refetch, which would tear down the player.
+  const [video, setVideo] = useState(videoProp);
   const [showEdit, setShowEdit] = useState(editMode);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRefresh, setConfirmRefresh] = useState(false);
   const [expandDesc, setExpandDesc] = useState(false);
-  const [notesDraft, setNotesDraft] = useState(video.personal_notes ?? "");
-  const [notesOpen, setNotesOpen] = useState(Boolean(video.personal_notes));
+  const [notesDraft, setNotesDraft] = useState(videoProp.personal_notes ?? "");
+  const [notesOpen, setNotesOpen] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [busyFlag, setBusyFlag] = useState(false);
 
+  useEffect(() => {
+    setVideo(videoProp);
+  }, [videoProp]);
+
+  // A different video means a fresh draft; a refetch of the same one must not
+  // discard what the user is currently typing.
+  useEffect(() => {
+    setNotesDraft(videoProp.personal_notes ?? "");
+    setNotesOpen(false);
+    setExpandDesc(false);
+    // Deliberately keyed on the id alone: depending on personal_notes too would
+    // wipe the user's in-progress draft whenever the video is refetched.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoProp.id]);
+
+  // Sidebar counts still need to follow along, but the video page itself has
+  // already been updated locally, so no library-changed event is fired here.
+  const syncSidebar = () => {
+    void refresh();
+  };
+
+  // For changes that come from outside (a metadata refresh rewrites title,
+  // thumbnail and channel), a real refetch is the only way to pick them up.
   const notifyChanged = async () => {
     await refresh();
     window.dispatchEvent(new CustomEvent("bookmarker:library-changed"));
   };
 
   const toggleFavorite = async () => {
+    const next = !video.is_favorite;
     setBusyFlag(true);
-    const res = await updateVideoFlags({ videoId: video.id, isFavorite: !video.is_favorite });
+    setVideo((v) => ({ ...v, is_favorite: next }));
+    const res = await updateVideoFlags({ videoId: video.id, isFavorite: next });
     setBusyFlag(false);
-    if (!res.ok) return toast("Could not update", { variant: "error" });
-    await notifyChanged();
+    if (!res.ok) {
+      setVideo((v) => ({ ...v, is_favorite: !next }));
+      return toast("Could not update", { variant: "error" });
+    }
+    syncSidebar();
   };
 
   const toggleWatchLater = async () => {
+    const next = !video.is_watch_later;
     setBusyFlag(true);
-    const res = await updateVideoFlags({ videoId: video.id, isWatchLater: !video.is_watch_later });
+    setVideo((v) => ({ ...v, is_watch_later: next }));
+    const res = await updateVideoFlags({ videoId: video.id, isWatchLater: next });
     setBusyFlag(false);
-    if (!res.ok) return toast("Could not update", { variant: "error" });
-    await notifyChanged();
+    if (!res.ok) {
+      setVideo((v) => ({ ...v, is_watch_later: !next }));
+      return toast("Could not update", { variant: "error" });
+    }
+    syncSidebar();
   };
 
   const setStatus = async (s: "unwatched" | "watching" | "watched") => {
+    const prev = video.watch_status;
+    setVideo((v) => ({ ...v, watch_status: s }));
     const res = await updateVideoFlags({ videoId: video.id, watchStatus: s });
-    if (!res.ok) return toast("Could not update status", { variant: "error" });
-    await notifyChanged();
+    if (!res.ok) {
+      setVideo((v) => ({ ...v, watch_status: prev }));
+      return toast("Could not update status", { variant: "error" });
+    }
+    syncSidebar();
   };
 
   const copyUrl = async () => {
@@ -104,12 +145,14 @@ export function VideoDetail({
   };
 
   const saveNotes = async () => {
+    const saved = notesDraft || null;
     setSavingNotes(true);
-    const res = await updateVideoNotes({ videoId: video.id, personalNotes: notesDraft || null });
+    const res = await updateVideoNotes({ videoId: video.id, personalNotes: saved });
     setSavingNotes(false);
     if (!res.ok) return toast("Could not save notes", { variant: "error" });
+    setVideo((v) => ({ ...v, personal_notes: saved }));
+    setNotesOpen(false);
     toast("Notes saved");
-    await notifyChanged();
   };
 
   const renderDescription = () => {

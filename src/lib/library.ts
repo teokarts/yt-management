@@ -207,30 +207,6 @@ export async function fetchAllTagsWithCounts(
   });
 }
 
-export async function fetchDistinctChannels(
-  supabase: DB,
-  userId: string,
-): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("videos")
-    .select("channel_name, channel_id")
-    .eq("user_id", userId)
-    .not("channel_name", "is", null)
-    .order("channel_name", { ascending: true });
-  if (error) throw error;
-  const seen = new Set<string>();
-  const channels: string[] = [];
-  for (const v of data ?? []) {
-    const name = (v as { channel_name: string }).channel_name;
-    const id = (v as { channel_id: string | null }).channel_id;
-    const key = id ?? name;
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    channels.push(name);
-  }
-  return channels;
-}
-
 async function attachRelations(
   supabase: DB,
   userId: string,
@@ -278,7 +254,6 @@ export interface LibraryPageData {
   initial: LibraryPage;
   categories: Category[];
   tags: Tag[];
-  channels: string[];
   defaultSort: SortOption;
   density: CardDensity;
 }
@@ -288,11 +263,10 @@ export async function loadLibraryPageData(
   userId: string,
   filters: LibraryFilters,
 ): Promise<LibraryPageData> {
-  const [initial, categories, tags, channels, profileRes] = await Promise.all([
+  const [initial, categories, tags, profileRes] = await Promise.all([
     loadLibraryPage(supabase, userId, filters, 0),
     fetchAllCategories(supabase, userId),
     fetchAllTags(supabase, userId),
-    fetchDistinctChannels(supabase, userId),
     supabase.from("profiles").select("default_sort, card_density").eq("id", userId).maybeSingle(),
   ]);
 
@@ -300,5 +274,5 @@ export async function loadLibraryPageData(
   const defaultSort = (profile?.default_sort ?? "recently_added") as SortOption;
   const density = (profile?.card_density ?? "comfortable") as CardDensity;
 
-  return { initial, categories, tags, channels, defaultSort, density };
+  return { initial, categories, tags, defaultSort, density };
 }
