@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Play, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
 
 export function VideoPlayer({
   videoId,
@@ -15,6 +14,11 @@ export function VideoPlayer({
 }) {
   const [ready, setReady] = useState(false);
 
+  // Keep the top-right corner of the frame free of overlays: YouTube renders
+  // its CC / settings controls along the TOP edge on hover, and an absolutely
+  // positioned button there covers them. "Open on YouTube" already exists in
+  // the action bar below the player.
+  //
   // No `modestbranding` — it is deprecated and now yields a stripped control
   // bar with no CC / volume / settings buttons. Omitting it restores the full
   // YouTube chrome. `cc_load_policy=0` keeps captions off unless the viewer
@@ -44,18 +48,6 @@ export function VideoPlayer({
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
       />
-      <a
-        href={`https://www.youtube.com/watch?v=${videoId}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute right-3 top-3 z-10"
-        aria-label="Open on YouTube"
-      >
-        <Button variant="secondary" size="sm" className="bg-black/60 backdrop-blur hover:bg-black/80">
-          <ExternalLink className="h-3.5 w-3.5" />
-          YouTube
-        </Button>
-      </a>
     </div>
   );
 }
