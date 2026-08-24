@@ -17,7 +17,7 @@ import {
 } from "@/lib/validation";
 import { loadLibraryPage, type LibraryFilters } from "@/lib/library";
 import { slugify, normalizeTag } from "@/lib/utils";
-import type { VideoWithRelations } from "@/types/database";
+import type { SharedVideo, VideoWithRelations } from "@/types/database";
 
 export interface ActionResult<T = undefined> {
   ok: boolean;
@@ -614,4 +614,81 @@ export async function updateProfile(input: {
 
   if (error) return { ok: false, error: error.message };
   return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Shared links — public /#/share/<token> pages anyone can open
+// ---------------------------------------------------------------------------
+
+/** Builds a public share URL that respects the deployment base path. */
+export function buildShareUrl(token: string): string {
+  return `${window.location.origin}${import.meta.env.BASE_URL}#/share/${token}`;
+}
+
+/**
+ * Returns the share link for a video, creating it on first use.
+ * Each video has at most one share link; passing `note` syncs the
+ * note-for-the-recipient stored with the link.
+ */
+export async function createShareLink(input: {
+  videoId: string;
+  note?: string | null;
+}): Promise<ActionResult<{ token: string }>> {
+  const user = await currentUser();
+
+  const { data: existing } = await supabase
+    .from("shared_links")
+    .select("token, note")
+    .eq("video_id", input.videoId)
+    .maybeSingle();
+
+  const note = input.note?.trim() ? input.note.trim() : null;
+
+  if (existing) {
+    if (note !== null && note !== existing.note) {
+      const { error } = await supabase
+        .from("shared_links")
+        .update({ note })
+        .eq("video_id", input.videoId)
+        .eq("created_by", user.id);
+      if (error) return { ok: false, error: error.message };
+    }
+    return { ok: true, data: { token: existing.token } };
+  }
+
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const { data, error } = await supabase
+    .from("shared_links")
+    .insert({ token, video_id: input.videoId, note, created_by: user.id })
+    .select("token")
+    .single();
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data: { token: data.token } };
+}
+
+export async function fetchSharedVideo(
+  token: string,
+): Promise<ActionResult<SharedVideo | null>> {
+  const { data, error } = await supabase.rpc("get_shared_video", { p_token: token });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data: (data as SharedVideo | null) ?? null };
+}
+
+/** Saves a shared video into the signed-in viewer's library. */
+export async function saveSharedVideoToLibrary(
+  token: string,
+): Promise<ActionResult<{ saved: boolean }>> {
+  try {
+    await currentUser();
+  } catch {
+    return { ok: false, code: "unauthenticated", error: "You must be signed in." };
+  }
+
+  const { data, error } = await supabase.rpc("save_shared_video", { p_token: token });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data: { saved: data !== null } };
 }

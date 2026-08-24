@@ -35,6 +35,7 @@ const AdminProfilePage = lazy(() =>
   import("@/pages/admin/profile").then((m) => ({ default: m.AdminProfilePage })),
 );
 const HelpPage = lazy(() => import("@/pages/help").then((m) => ({ default: m.HelpPage })));
+const SharePage = lazy(() => import("@/pages/share").then((m) => ({ default: m.SharePage })));
 const NotFoundPage = lazy(() =>
   import("@/pages/not-found").then((m) => ({ default: m.NotFoundPage })),
 );
@@ -119,6 +120,9 @@ export default function App() {
               <Route path="/admin/profile" element={<AdminProfilePage />} />
             </Route>
             <Route path="/help" element={<HelpPage />} />
+            {/* Public: anyone with the link can view the shared video,
+                signed in or not. */}
+            <Route path="/share/:token" element={<SharePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           </RouteLoader>

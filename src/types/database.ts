@@ -63,6 +63,28 @@ export type VideoWithRelations = Video & {
   tags: Tag[];
 };
 
+export type SharedLink = {
+  id: string;
+  token: string;
+  video_id: string;
+  note: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+/** Public payload returned by the `get_shared_video` RPC (no owner notes). */
+export type SharedVideo = {
+  title: string;
+  youtube_video_id: string;
+  youtube_url: string;
+  thumbnail_url: string | null;
+  channel_name: string | null;
+  published_at: string | null;
+  duration: string | null;
+  sharer: string | null;
+  note: string | null;
+};
+
 export type CategoryWithCount = Category & {
   video_count: number;
 };
@@ -216,6 +238,26 @@ export interface Database {
           },
         ];
       };
+      shared_links: {
+        Row: SharedLink;
+        Insert: {
+          token: string;
+          video_id: string;
+          note?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: Partial<SharedLink>;
+        Relationships: [
+          {
+            foreignKeyName: "shared_links_video_id_fkey";
+            columns: ["video_id"];
+            isOneToOne: true;
+            referencedRelation: "videos";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -262,6 +304,14 @@ export interface Database {
       admin_user_stats: {
         Args: Record<string, never>;
         Returns: { user_id: string; video_count: number; last_active: string | null }[];
+      };
+      get_shared_video: {
+        Args: { p_token: string };
+        Returns: unknown;
+      };
+      save_shared_video: {
+        Args: { p_token: string };
+        Returns: string | null;
       };
     };
     Enums: Record<string, never>;

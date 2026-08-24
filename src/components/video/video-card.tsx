@@ -13,15 +13,17 @@ import {
   Pencil,
   Trash2,
   Info,
+  Share,
 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
+import { Tooltip } from "@/components/ui/tooltip";
 import { DropdownMenu, type MenuItem } from "@/components/ui/menu";
 import { ConfirmDialog } from "@/components/ui/confirm";
 import { useToast } from "@/components/ui/toast";
 import { cn, formatDuration, relativeTime, truncate } from "@/lib/utils";
 import type { CardDensity } from "@/lib/constants";
 import type { VideoWithRelations } from "@/types/database";
-import { deleteVideo, refreshVideoMetadata, updateVideoFlags } from "@/lib/api";
+import { deleteVideo, refreshVideoMetadata, updateVideoFlags, buildShareUrl, createShareLink } from "@/lib/api";
 import { useAppData } from "@/context/app-data-context";
 
 const statusStyles: Record<string, { label: string; className: string }> = {
@@ -88,6 +90,30 @@ export function VideoCard({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRefresh, setConfirmRefresh] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [shareNotes, setShareNotes] = useState("");
+  const [shareToken, setShareToken] = useState<string | null>(null);
+
+  const openShare = async () => {
+    setShowShare(true);
+    const res = await createShareLink({ videoId: video.id });
+    setShareToken(res.ok && res.data ? res.data.token : null);
+  };
+
+  const copyShareLink = async () => {
+    const withNote = async (token: string) => {
+      const res = await createShareLink({ videoId: video.id, note: shareNotes });
+      return buildShareUrl(res.ok && res.data ? res.data.token : token);
+    };
+    try {
+      const url = shareToken ? await withNote(shareToken) : "";
+      if (!url) throw new Error("no link");
+      await navigator.clipboard.writeText(url);
+      toast("Link copied", { description: url });
+    } catch {
+      toast("Could not copy link", { variant: "error" });
+    }
+  };
 
   const status = statusStyles[video.watch_status];
   const isList = density === "list";
@@ -262,6 +288,19 @@ export function VideoCard({
           <Info className="h-3.5 w-3.5" />
         </button>
       )}
+      <Tooltip content="Share video">
+        <button
+          type="button"
+          onClick={openShare}
+          aria-label="Share video"
+          className={cn(
+            "inline-flex h-5 w-5 items-center justify-center rounded text-accent-strong transition-colors hover:bg-hover",
+            footerClass,
+          )}
+        >
+          <Share className="h-3.5 w-3.5 fill-current" />
+        </button>
+      </Tooltip>
       <span className="ml-auto tabular-nums">Saved {relativeTime(video.created_at)}</span>
     </div>
   );
@@ -419,6 +458,52 @@ export function VideoCard({
           <div className="p-6 whitespace-pre-wrap text-secondary">{video.personal_notes}</div>
         </Dialog>
       )}
+
+      <Dialog
+        open={showShare}
+        onClose={() => setShowShare(false)}
+        title="Share"
+        description={truncate(video.title, 80)}
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div className="aspect-video overflow-hidden rounded-lg bg-black">
+            <iframe
+              src={`https://www.youtube.com/embed/${video.youtube_video_id}`}
+              title={video.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              className="h-full w-full"
+              loading="lazy"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate text-sm text-secondary">
+              {shareToken ? buildShareUrl(shareToken) : "Creating link…"}
+            </span>
+            <button
+              type="button"
+              disabled={!shareToken}
+              onClick={copyShareLink}
+              className="shrink-0 rounded-md bg-accent-soft px-3 py-1.5 text-[12.5px] font-medium text-accent-strong transition-colors hover:bg-accent-soft-strong disabled:opacity-50"
+            >
+              Copy link
+            </button>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[12px] font-medium text-secondary">Note for the recipient</p>
+            <textarea
+              value={shareNotes}
+              onChange={(e) => setShareNotes(e.target.value)}
+              placeholder="Add a note — it's shown on the shared page…"
+              rows={3}
+              className="w-full resize-none rounded-md border border-border bg-elevated px-3 py-2 text-sm text-primary placeholder:text-muted/70 shadow-sm transition-colors hover:border-border-strong focus:border-accent/40 focus:outline-none"
+            />
+            <p className="mt-1.5 text-[11.5px] text-muted">
+              Anyone with this link can watch the video and save it to their own account.
+            </p>
+          </div>
+        </div>
+      </Dialog>
     </article>
   );
 }

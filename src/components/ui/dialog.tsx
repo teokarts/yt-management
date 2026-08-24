@@ -34,11 +34,15 @@ export function Dialog({
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
 
-  const handleKeyDown = useCallback(
+  // stable references — avoids [onClose] in deps which causes focus theft when
+  // onClose is recreated on every parent render (inline closures in React)
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const handleKeyDownMemo = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
       }
       if (e.key === "Tab") {
         const panel = panelRef.current;
@@ -58,21 +62,25 @@ export function Dialog({
         }
       }
     },
-    [onClose],
+    [], // stable — always reads the current onCloseRef
   );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     previousFocus.current = document.activeElement as HTMLElement;
     document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDownMemo);
     requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("input, button")?.focus());
     return () => {
       document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleKeyDown);
-      previousFocus.current?.focus?.();
+      document.removeEventListener("keydown", handleKeyDownMemo);
+      // defer focus restoration so in-flight browser events (e.g. click → input)
+      // complete before we steal focus back — prevents the "type a char → focus jumps to close" bug
+      window.setTimeout(() => previousFocus.current?.focus?.(), 0);
     };
-  }, [open, handleKeyDown]);
+  }, [open]); // only open as dependency
 
   if (!open) return null;
 
