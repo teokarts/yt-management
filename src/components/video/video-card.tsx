@@ -12,8 +12,9 @@ import {
   Eye,
   Pencil,
   Trash2,
-  StickyNote,
+  Info,
 } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
 import { DropdownMenu, type MenuItem } from "@/components/ui/menu";
 import { ConfirmDialog } from "@/components/ui/confirm";
 import { useToast } from "@/components/ui/toast";
@@ -86,6 +87,7 @@ export function VideoCard({
   const { refresh } = useAppData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRefresh, setConfirmRefresh] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   const status = statusStyles[video.watch_status];
   const isList = density === "list";
@@ -247,13 +249,20 @@ export function VideoCard({
 
   const footer = (footerClass: string) => (
     <div className={cn("mt-auto flex items-center justify-between pt-2 text-muted", footerClass)}>
-      <span className="inline-flex items-center gap-1">
-        {video.personal_notes && <StickyNote className="h-3 w-3" />}
-        {video.categories.length + video.tags.length > 0
-          ? `${video.categories.length} cat${video.categories.length === 1 ? "" : "s"} · ${video.tags.length} tag${video.tags.length === 1 ? "" : "s"}`
-          : "Unorganized"}
-      </span>
-      <span className="tabular-nums">Saved {relativeTime(video.created_at)}</span>
+      {video.personal_notes && (
+        <button
+          type="button"
+          onClick={() => setShowNotes(true)}
+          aria-label="View notes"
+          className={cn(
+            "inline-flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-hover hover:text-primary",
+            footerClass,
+          )}
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+      )}
+      <span className="ml-auto tabular-nums">Saved {relativeTime(video.created_at)}</span>
     </div>
   );
 
@@ -398,6 +407,18 @@ export function VideoCard({
         confirmLabel="Refresh"
         tone="default"
       />
+
+      {video.personal_notes && (
+        <Dialog
+          open={showNotes}
+          onClose={() => setShowNotes(false)}
+          title="Notes"
+          description={truncate(video.title, 80)}
+          size="md"
+        >
+          <div className="p-6 whitespace-pre-wrap text-secondary">{video.personal_notes}</div>
+        </Dialog>
+      )}
     </article>
   );
 }
