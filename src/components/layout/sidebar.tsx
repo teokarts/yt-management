@@ -13,16 +13,19 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
+  ListVideo,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { cn } from "@/lib/utils";
-import type { CategoryWithCount, TagWithCount } from "@/types/database";
+import type { CategoryWithCount, TagWithCount, PlaylistWithCount } from "@/types/database";
 import { CategoryDialog } from "@/components/category/category-dialog";
+import { PlaylistDialog } from "@/components/playlist/playlist-dialog";
 import { signOut } from "@/lib/api";
 
 interface SidebarProps {
   categories: CategoryWithCount[];
   pinnedTags: TagWithCount[];
+  playlists: PlaylistWithCount[];
   totalVideos: number;
   favoriteCount: number;
   watchLaterCount: number;
@@ -109,6 +112,7 @@ function SidebarInner(props: SidebarProps) {
   const navigate = useNavigate();
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [dialogParent, setDialogParent] = useState<string | null>(null);
+  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [signingOut, setSigningOut] = useState(false);
 
@@ -122,6 +126,11 @@ function SidebarInner(props: SidebarProps) {
 
   const tagActive = useMemo(() => {
     const m = pathname.match(/^\/app\/tag\/(.+)$/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }, [pathname]);
+
+  const playlistActive = useMemo(() => {
+    const m = pathname.match(/^\/app\/playlist\/(.+)$/);
     return m ? decodeURIComponent(m[1]) : null;
   }, [pathname]);
 
@@ -295,6 +304,58 @@ function SidebarInner(props: SidebarProps) {
         <div className="mt-6 space-y-0.5">
           <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+              Playlists
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPlaylistDialog(true)}
+              aria-label="New playlist"
+              className="rounded p-1 text-muted transition-colors hover:bg-hover hover:text-accent"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          {props.playlists.length === 0 && (
+            <p className="px-3 py-1.5 text-xs leading-relaxed text-muted">
+              No playlists yet. Group videos into ordered lists.
+            </p>
+          )}
+          <div className="space-y-0.5">
+            {props.playlists.map((pl) => {
+              const active = playlistActive === pl.slug;
+              return (
+                <Link
+                  key={pl.id}
+                  to={`/app/playlist/${pl.slug}`}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors",
+                    active
+                      ? "bg-selected text-primary"
+                      : "text-secondary hover:bg-hover hover:text-primary",
+                  )}
+                >
+                  <ListVideo
+                    className={cn(
+                      "h-4 w-4 shrink-0",
+                      active ? "text-accent" : "text-muted group-hover:text-secondary",
+                    )}
+                  />
+                  <span className="flex-1 truncate">{pl.name}</span>
+                  {pl.video_count > 0 && (
+                    <span className="font-mono text-[10.5px] tabular-nums text-muted group-hover:text-secondary">
+                      {pl.video_count}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-0.5">
+          <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
               Pinned tags
             </p>
             <Link
@@ -375,6 +436,8 @@ function SidebarInner(props: SidebarProps) {
         categories={props.categories}
         defaultParentId={dialogParent}
       />
+
+      <PlaylistDialog open={showPlaylistDialog} onClose={() => setShowPlaylistDialog(false)} />
     </aside>
   );
 }

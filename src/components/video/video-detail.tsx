@@ -16,6 +16,7 @@ import {
   StickyNote,
   ArrowLeft,
   ChevronRight,
+  ListPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import { ConfirmDialog } from "@/components/ui/confirm";
 import { useToast } from "@/components/ui/toast";
 import { VideoPlayer } from "@/components/video/video-player";
 import { EditVideoDialog } from "@/components/video/edit-video-dialog";
+import { AddToPlaylistDialog } from "@/components/video/add-to-playlist-dialog";
 import { cn, formatDate, formatDuration } from "@/lib/utils";
 import type { Category, Tag, VideoWithRelations } from "@/types/database";
 import {
@@ -61,6 +63,7 @@ export function VideoDetail({
   const [notesOpen, setNotesOpen] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [busyFlag, setBusyFlag] = useState(false);
+  const [showPlaylists, setShowPlaylists] = useState(false);
 
   useEffect(() => {
     setVideo(videoProp);
@@ -232,6 +235,13 @@ export function VideoDetail({
             >
               <Clock className="h-4 w-4" />
               {video.is_watch_later ? "In watch later" : "Watch later"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPlaylists(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-[13px] font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
+            >
+              <ListPlus className="h-4 w-4" /> Playlist
             </button>
             <button
               type="button"
@@ -498,6 +508,13 @@ export function VideoDetail({
           </div>
         </section>
       )}
+
+      <AddToPlaylistDialog
+        open={showPlaylists}
+        onClose={() => setShowPlaylists(false)}
+        videoId={video.id}
+        videoTitle={video.title}
+      />
 
       {/* Edit dialog */}
       <EditVideoDialog

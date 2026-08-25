@@ -89,6 +89,20 @@ export type CategoryWithCount = Category & {
   video_count: number;
 };
 
+export type Playlist = {
+  id: string;
+  user_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlaylistWithCount = Playlist & {
+  video_count: number;
+};
+
 export type TagWithCount = Tag & {
   video_count: number;
 };
@@ -234,6 +248,40 @@ export interface Database {
             columns: ["tag_id"];
             isOneToOne: false;
             referencedRelation: "tags";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      playlists: {
+        Row: Playlist;
+        Insert: {
+          user_id: string;
+          name: string;
+          slug?: string;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Playlist>;
+        Relationships: [];
+      };
+      playlist_videos: {
+        Row: { playlist_id: string; video_id: string; position: number; added_at: string };
+        Insert: { playlist_id: string; video_id: string; position?: number; added_at?: string };
+        Update: { position?: number };
+        Relationships: [
+          {
+            foreignKeyName: "playlist_videos_playlist_id_fkey";
+            columns: ["playlist_id"];
+            isOneToOne: false;
+            referencedRelation: "playlists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "playlist_videos_video_id_fkey";
+            columns: ["video_id"];
+            isOneToOne: false;
+            referencedRelation: "videos";
             referencedColumns: ["id"];
           },
         ];

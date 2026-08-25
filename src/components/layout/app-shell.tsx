@@ -4,13 +4,14 @@ import { useLocation } from "react-router-dom";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Logo } from "@/components/layout/logo";
 import { AddVideoDialog } from "@/components/library/add-video-dialog";
-import type { Category, Tag, CategoryWithCount, TagWithCount, Profile } from "@/types/database";
+import type { Category, Tag, CategoryWithCount, TagWithCount, PlaylistWithCount, Profile } from "@/types/database";
 
 export interface AppShellData {
   categories: Category[];
   categoryCounts: CategoryWithCount[];
   tags: Tag[];
   pinnedTags: TagWithCount[];
+  playlists: PlaylistWithCount[];
   totalVideos: number;
   favoriteCount: number;
   watchLaterCount: number;
@@ -58,6 +59,7 @@ export function AppShell({ data, children }: { data: AppShellData; children: Rea
   const sidebarProps = {
     categories: data.categoryCounts,
     pinnedTags: data.pinnedTags,
+    playlists: data.playlists,
     totalVideos: data.totalVideos,
     favoriteCount: data.favoriteCount,
     watchLaterCount: data.watchLaterCount,

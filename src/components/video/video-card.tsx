@@ -14,6 +14,7 @@ import {
   Trash2,
   Info,
   Share,
+  ListPlus,
 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -23,8 +24,9 @@ import { useToast } from "@/components/ui/toast";
 import { cn, formatDuration, relativeTime, truncate } from "@/lib/utils";
 import type { CardDensity } from "@/lib/constants";
 import type { VideoWithRelations } from "@/types/database";
-import { deleteVideo, refreshVideoMetadata, updateVideoFlags, buildShareUrl, createShareLink } from "@/lib/api";
+import { deleteVideo, refreshVideoMetadata, updateVideoFlags, buildShareUrl, createShareLink, removeFromPlaylist } from "@/lib/api";
 import { useAppData } from "@/context/app-data-context";
+import { AddToPlaylistDialog } from "@/components/video/add-to-playlist-dialog";
 
 const statusStyles: Record<string, { label: string; className: string }> = {
   watched: { label: "Watched", className: "bg-success text-white" },
@@ -80,9 +82,12 @@ const tagLimits: Record<"cozy" | "comfortable" | "compact", number> = {
 export function VideoCard({
   video,
   density,
+  removeFromPlaylistId,
 }: {
   video: VideoWithRelations;
   density: CardDensity;
+  /** When set (playlist page), the card menu offers removal from that playlist. */
+  removeFromPlaylistId?: string;
 }) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -91,6 +96,7 @@ export function VideoCard({
   const [confirmRefresh, setConfirmRefresh] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showPlaylists, setShowPlaylists] = useState(false);
   const [shareNotes, setShareNotes] = useState("");
   const [shareToken, setShareToken] = useState<string | null>(null);
 
@@ -180,6 +186,33 @@ export function VideoCard({
       icon: <Clock className="h-4 w-4" />,
       onSelect: toggleWatchLater,
     },
+    {
+      label: "Add to playlist",
+      icon: <ListPlus className="h-4 w-4" />,
+      onSelect: () => setShowPlaylists(true),
+    },
+    ...(removeFromPlaylistId
+      ? [
+          {
+            label: "Remove from this playlist",
+            icon: <ListPlus className="h-4 w-4" />,
+            danger: true,
+            onSelect: async () => {
+              const res = await removeFromPlaylist({
+                playlistId: removeFromPlaylistId!,
+                videoId: video.id,
+              });
+              if (!res.ok) {
+                toast("Could not remove from playlist", { variant: "error" });
+                return;
+              }
+              toast("Removed from playlist", { description: truncate(video.title, 60) });
+              await notifyLibraryChanged();
+              window.dispatchEvent(new CustomEvent("bookmarker:playlist-changed"));
+            },
+          },
+        ]
+      : []),
     { separator: true },
     {
       label: "Copy YouTube link",
@@ -447,9 +480,16 @@ export function VideoCard({
         tone="default"
       />
 
+      <AddToPlaylistDialog
+        open={showPlaylists}
+        onClose={() => setShowPlaylists(false)}
+        videoId={video.id}
+        videoTitle={video.title}
+      />
+
       {video.personal_notes && (
-        <Dialog
-          open={showNotes}
+      <Dialog
+        open={showNotes}
           onClose={() => setShowNotes(false)}
           title="Notes"
           description={truncate(video.title, 80)}

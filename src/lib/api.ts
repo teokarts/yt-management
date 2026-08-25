@@ -14,6 +14,10 @@ import {
   createTagSchema,
   pinTagSchema,
   updateProfileSchema,
+  createPlaylistSchema,
+  updatePlaylistSchema,
+  deletePlaylistSchema,
+  removeFromPlaylistSchema,
 } from "@/lib/validation";
 import { loadLibraryPage, type LibraryFilters } from "@/lib/library";
 import { slugify, normalizeTag } from "@/lib/utils";
@@ -691,4 +695,173 @@ export async function saveSharedVideoToLibrary(
   const { data, error } = await supabase.rpc("save_shared_video", { p_token: token });
   if (error) return { ok: false, error: error.message };
   return { ok: true, data: { saved: data !== null } };
+}
+/** First available slug: "roadtrip", "roadtrip-2", … */
+async function nextPlaylistSlug(
+  userId: string,
+  name: string,
+  excludeId?: string,
+): Promise<string> {
+  const base = slugify(name) || "playlist";
+  const { data } = await supabase
+    .from("playlists")
+    .select("id, slug")
+    .eq("user_id", userId)
+    .like("slug", `${base}%`);
+  const taken = new Set(
+    ((data ?? []) as Array<{ id: string; slug: string }>)
+      .filter((r) => r.id !== excludeId)
+      .map((r) => r.slug),
+  );
+  if (!taken.has(base)) return base;
+  for (let i = 2; ; i++) {
+    const candidate = `${base}-${i}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+}
+
+export async function createPlaylist(input: {
+  name: string;
+  description?: string | null;
+}): Promise<ActionResult<{ id: string; slug: string }>> {
+  const user = await currentUser();
+  const parsed = createPlaylistSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const name = parsed.data.name.trim();
+  const slug = await nextPlaylistSlug(user.id, name);
+
+  const { data, error } = await supabase
+    .from("playlists")
+    .insert({
+      user_id: user.id,
+      name,
+      slug,
+      description: parsed.data.description ?? null,
+    })
+    .select("id, slug")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "A playlist with this name already exists." };
+    }
+    return { ok: false, error: error.message };
+  }
+  return { ok: true, data: { id: data.id, slug: data.slug } };
+}
+
+export async function updatePlaylist(input: {
+  id: string;
+  name: string;
+  description?: string | null;
+}): Promise<ActionResult> {
+  const user = await currentUser();
+  const parsed = updatePlaylistSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const name = parsed.data.name.trim();
+  const slug = await nextPlaylistSlug(user.id, name, parsed.data.id);
+
+  const { error } = await supabase
+    .from("playlists")
+    .update({
+      name,
+      slug,
+      description: parsed.data.description ?? null,
+    })
+    .eq("id", parsed.data.id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "A playlist with this name already exists." };
+    }
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
+
+export async function deletePlaylist(input: { id: string }): Promise<ActionResult> {
+  const user = await currentUser();
+  const parsed = deletePlaylistSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { error } = await supabase
+    .from("playlists")
+    .delete()
+    .eq("id", parsed.data.id)
+    .eq("user_id", user.id);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function addToPlaylist(input: {
+  playlistId: string;
+  videoId: string;
+}): Promise<ActionResult> {
+  const user = await currentUser();
+  const parsed = removeFromPlaylistSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  // The video must belong to the caller — RLS would reject it anyway, but a
+  // friendly message beats a silent no-op.
+  const { data: owned } = await supabase
+    .from("videos")
+    .select("id")
+    .eq("id", parsed.data.videoId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!owned) return { ok: false, error: "Video not found." };
+
+  const { data: last } = await supabase
+    .from("playlist_videos")
+    .select("position")
+    .eq("playlist_id", parsed.data.playlistId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("playlist_videos")
+    .upsert(
+      {
+        playlist_id: parsed.data.playlistId,
+        video_id: parsed.data.videoId,
+        position: (last?.position ?? -1) + 1,
+      },
+      { onConflict: "playlist_id,video_id", ignoreDuplicates: true },
+    );
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function removeFromPlaylist(input: {
+  playlistId: string;
+  videoId: string;
+}): Promise<ActionResult> {
+  await currentUser();
+  const parsed = removeFromPlaylistSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { error } = await supabase
+    .from("playlist_videos")
+    .delete()
+    .eq("playlist_id", parsed.data.playlistId)
+    .eq("video_id", parsed.data.videoId);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }

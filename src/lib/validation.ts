@@ -81,6 +81,32 @@ export const renameCategorySchema = z.object({
 
 export const deleteCategorySchema = z.object({ id: categoryIdSchema });
 
+export const playlistNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Name is required")
+  .max(60, "Keep the name under 60 characters");
+
+export const createPlaylistSchema = z.object({
+  name: playlistNameSchema,
+  description: z.string().max(300).nullable().optional(),
+});
+
+export const updatePlaylistSchema = z.object({
+  id: categoryIdSchema,
+  name: playlistNameSchema,
+  description: z.string().max(300).nullable().optional(),
+});
+
+export const deletePlaylistSchema = z.object({ id: categoryIdSchema });
+
+export const addToPlaylistSchema = z.object({
+  playlistId: categoryIdSchema,
+  videoId: videoIdSchema,
+});
+
+export const removeFromPlaylistSchema = addToPlaylistSchema;
+
 export const createTagSchema = z.object({ name: tagNameSchema });
 
 export const pinTagSchema = z.object({ id: categoryIdSchema, isPinned: z.boolean() });

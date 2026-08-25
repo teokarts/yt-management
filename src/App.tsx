@@ -25,6 +25,9 @@ const CategoryPage = lazy(() =>
   import("@/pages/app/category").then((m) => ({ default: m.CategoryPage })),
 );
 const TagPage = lazy(() => import("@/pages/app/tag").then((m) => ({ default: m.TagPage })));
+const PlaylistPage = lazy(() =>
+  import("@/pages/app/playlist").then((m) => ({ default: m.PlaylistPage })),
+);
 const AdminLayout = lazy(() =>
   import("@/pages/admin/layout").then((m) => ({ default: m.AdminLayout })),
 );
@@ -106,6 +109,7 @@ export default function App() {
               <Route path="/app/video/:id" element={<VideoPage />} />
               <Route path="/app/category/:slug" element={<CategoryPage />} />
               <Route path="/app/tag/:slug" element={<TagPage />} />
+              <Route path="/app/playlist/:slug" element={<PlaylistPage />} />
             </Route>
             <Route
               element={

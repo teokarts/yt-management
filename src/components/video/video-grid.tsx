@@ -14,14 +14,22 @@ const densityGrid: Record<CardDensity, string> = {
 export function VideoGrid({
   videos,
   density = "comfortable",
+  removeFromPlaylistId,
 }: {
   videos: VideoWithRelations[];
   density?: CardDensity;
+  /** Passed to every card; enables "Remove from this playlist" in its menu. */
+  removeFromPlaylistId?: string;
 }) {
   return (
     <div className={cn("grid grid-cols-1 gap-3.5 md:gap-4", densityGrid[density])}>
       {videos.map((video) => (
-        <VideoCard key={video.id} video={video} density={density} />
+        <VideoCard
+          key={video.id}
+          video={video}
+          density={density}
+          removeFromPlaylistId={removeFromPlaylistId}
+        />
       ))}
     </div>
   );

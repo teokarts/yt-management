@@ -10,11 +10,13 @@ import {
 import { supabase } from "@/lib/supabase";
 import { loadSidebarData } from "@/lib/sidebar";
 import { fetchAllCategories, fetchAllTags } from "@/lib/library";
+import { fetchAllPlaylists } from "@/lib/playlists";
 import type {
   Category,
   Tag,
   CategoryWithCount,
   TagWithCount,
+  PlaylistWithCount,
   Profile,
 } from "@/types/database";
 
@@ -23,6 +25,7 @@ interface AppData {
   categoryCounts: CategoryWithCount[];
   tags: Tag[];
   pinnedTags: TagWithCount[];
+  playlists: PlaylistWithCount[];
   totalVideos: number;
   favoriteCount: number;
   watchLaterCount: number;
@@ -38,6 +41,7 @@ const AppDataContext = createContext<AppData>({
   categoryCounts: [],
   tags: [],
   pinnedTags: [],
+  playlists: [],
   totalVideos: 0,
   favoriteCount: 0,
   watchLaterCount: 0,
@@ -54,6 +58,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     categoryCounts: [],
     tags: [],
     pinnedTags: [],
+    playlists: [],
     totalVideos: 0,
     favoriteCount: 0,
     watchLaterCount: 0,
@@ -72,10 +77,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     // A failure here must not degrade into a silently empty sidebar — that
     // renders as "No categories yet" and looks like real, missing data.
-    const [sidebarData, categories, tags, profileRes] = await Promise.all([
+    const [sidebarData, categories, tags, playlists, profileRes] = await Promise.all([
       loadSidebarData(supabase, user.id),
       fetchAllCategories(supabase, user.id),
       fetchAllTags(supabase, user.id),
+      fetchAllPlaylists(supabase, user.id),
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     ]).catch((err) => {
       console.error("Failed to load app data", err);
@@ -89,6 +95,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       categoryCounts: sidebarData.categories,
       tags,
       pinnedTags: sidebarData.pinnedTags,
+      playlists,
       totalVideos: sidebarData.totalVideos,
       favoriteCount: sidebarData.favoriteCount,
       watchLaterCount: sidebarData.watchLaterCount,

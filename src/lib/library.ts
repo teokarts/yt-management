@@ -207,7 +207,7 @@ export async function fetchAllTagsWithCounts(
   });
 }
 
-async function attachRelations(
+export async function attachRelations(
   supabase: DB,
   userId: string,
   videos: Array<Database["public"]["Tables"]["videos"]["Row"]>,
