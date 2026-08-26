@@ -20,7 +20,7 @@ export default defineConfig(({ mode, command }) => {
     },
     server: {
       port: 5173,
-      open: true,
+      open: false,
     },
     build: {
       outDir: "dist",

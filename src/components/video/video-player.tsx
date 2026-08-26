@@ -29,25 +29,32 @@ export function VideoPlayer({
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-black">
-      {!ready && (
+      {!ready ? (
         <button
           type="button"
           onClick={() => setReady(true)}
-          className="absolute inset-0 z-10 flex items-center justify-center bg-sunken"
+          className="absolute inset-0 z-10 flex items-center justify-center"
           aria-label={`Play ${title}`}
         >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100">
+          <img
+            src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <span className="absolute inset-0 bg-black/20" />
+          <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100">
             <Play className="ml-1 h-7 w-7 fill-current" />
           </span>
         </button>
+      ) : (
+        <iframe
+          src={embedUrl}
+          title={title}
+          className="h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
       )}
-      <iframe
-        src={embedUrl}
-        title={title}
-        className="h-full w-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
     </div>
   );
 }
