@@ -79,7 +79,7 @@ function LoginForm() {
         Sign in
       </Button>
 
-      <div className="flex items-center justify-between text-[13px]">
+      <div className="flex items-center justify-between text-ui">
         <Link to="/signup" className="font-medium text-accent-strong hover:underline">
           Create an account
         </Link>

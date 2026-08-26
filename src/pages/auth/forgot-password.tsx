@@ -71,7 +71,7 @@ export function ForgotPasswordPage() {
         Send reset link
       </Button>
 
-      <p className="text-center text-[13px] text-muted">
+      <p className="text-center text-ui text-muted">
         Remembered it?{" "}
         <Link to="/login" className="font-medium text-accent-strong hover:underline">
           Sign in

@@ -47,7 +47,7 @@ export function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className={cn("mb-1.5 block text-[13px] font-medium text-secondary", className)}
+      className={cn("mb-1.5 block text-ui font-medium text-secondary", className)}
     >
       {children}
     </label>
@@ -56,5 +56,5 @@ export function FieldLabel({
 
 export function FieldError({ children }: { children?: React.ReactNode }) {
   if (!children) return null;
-  return <p className="mt-1.5 text-[13px] text-danger" role="alert">{children}</p>;
+  return <p className="mt-1.5 text-ui text-danger" role="alert">{children}</p>;
 }

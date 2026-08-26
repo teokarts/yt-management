@@ -158,8 +158,8 @@ export function SettingsView({
                         : "border-border hover:border-border-strong",
                     )}
                   >
-                    <p className="text-[13px] font-semibold text-primary">{d.label}</p>
-                    <p className="mt-0.5 text-[11.5px] leading-snug text-muted">{d.description}</p>
+                    <p className="text-ui font-semibold text-primary">{d.label}</p>
+                    <p className="mt-0.5 text-caption leading-snug text-muted">{d.description}</p>
                   </button>
                 ))}
               </div>
@@ -170,12 +170,12 @@ export function SettingsView({
         {/* Tags */}
         <section className="rounded-xl border border-border bg-elevated p-6">
           <h2 className="font-display text-sm font-semibold text-primary">Tags</h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted">
+          <p className="mt-1 text-ui leading-relaxed text-muted">
             Sized by how often you use them. Select a tag to browse its videos, or hover to pin
             it to your sidebar as a quick filter.
           </p>
           {localTags.length === 0 ? (
-            <p className="mt-4 rounded-md border border-dashed border-border px-4 py-6 text-center text-[13px] text-muted">
+            <p className="mt-4 rounded-md border border-dashed border-border px-4 py-6 text-center text-ui text-muted">
               Tags you add to videos will appear here.
             </p>
           ) : (
@@ -193,7 +193,7 @@ export function SettingsView({
         <section className="rounded-xl border border-border bg-elevated p-6">
           <h2 className="font-display text-sm font-semibold text-primary">Account</h2>
           <div className="mt-4 flex items-center justify-between gap-4">
-            <p className="text-[13px] text-muted">
+            <p className="text-ui text-muted">
               Sign out of this device. You&apos;ll need to sign back in to access your library.
             </p>
             <Button

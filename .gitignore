@@ -51,3 +51,8 @@ supabase/migrations/20240101000002_add_list_density.sql
 
 dist
 EXISTING_PROJECT_PROMPT.md
+AGENTS.md
+AGENTS.md
+.claude/skills/apple-design/SKILL.md
+supabase/migrations/20240101000006_playlist_video_reorder.sql
+AGENTS.md

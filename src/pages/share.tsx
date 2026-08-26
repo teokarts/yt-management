@@ -93,7 +93,7 @@ export function SharePage() {
             <div className="space-y-4 p-5 sm:p-6">
               <div>
                 <h1 className="font-display text-xl font-bold leading-snug">{video.title}</h1>
-                <p className="mt-1 text-[13px] text-muted">
+                <p className="mt-1 text-ui text-muted">
                   {[video.channel_name, video.duration && formatDuration(video.duration), formatPublishedAt(video.published_at)]
                     .filter(Boolean)
                     .join(" · ")}
@@ -101,7 +101,7 @@ export function SharePage() {
               </div>
 
               {(video.sharer || video.note) && (
-                <p className="text-[13px] text-secondary">
+                <p className="text-ui text-secondary">
                   Shared{video.sharer ? <> by <span className="font-medium text-primary">{video.sharer}</span></> : null}
                   {!video.sharer ? " with you" : ""}
                 </p>
@@ -119,7 +119,7 @@ export function SharePage() {
                     <p className="text-sm font-medium text-primary">
                       Want to keep this video?
                     </p>
-                    <p className="mt-1 text-[13px] leading-relaxed text-secondary">
+                    <p className="mt-1 text-ui leading-relaxed text-secondary">
                       Create a free account to save it to your own library.
                     </p>
                     <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row">
@@ -154,7 +154,7 @@ export function SharePage() {
                         <p className="text-sm font-medium text-primary">
                           Add this video to your library
                         </p>
-                        <p className="mt-1 text-[13px] text-secondary">
+                        <p className="mt-1 text-ui text-secondary">
                           It will be saved to your Reelist account.
                         </p>
                       </>
@@ -172,7 +172,7 @@ export function SharePage() {
                           Save to my library
                         </Button>
                         {saveError && (
-                          <p className="mt-3 text-[13px] text-danger">{saveError}</p>
+                          <p className="mt-3 text-ui text-danger">{saveError}</p>
                         )}
                       </>
                     )}

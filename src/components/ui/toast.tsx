@@ -11,6 +11,8 @@ interface Toast {
   title: string;
   description?: string;
   variant: ToastVariant;
+  /** True while the slide-out animation plays, before removal. */
+  exiting?: boolean;
 }
 
 interface ToastContextValue {
@@ -22,11 +24,22 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 let counter = 0;
 
+const EXIT_MS = 200;
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const dismiss = useCallback((id: number) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    // Mark as exiting (idempotent) so the slide-out animation can play,
+    // then remove after it completes.
+    setToasts((prev) =>
+      prev.some((t) => t.id === id && t.exiting)
+        ? prev
+        : prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)),
+    );
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, EXIT_MS);
   }, []);
 
   const toast = useCallback<ToastContextValue["toast"]>(
@@ -67,11 +80,16 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     toast.variant === "success" ? "text-success" : toast.variant === "error" ? "text-danger" : "text-info";
 
   return (
-    <div className="animate-slide-in-right pointer-events-auto flex items-start gap-3 rounded-lg border border-border-strong bg-elevated/95 p-3.5 shadow-pop backdrop-blur">
+    <div
+      className={cn(
+        "pointer-events-auto flex items-start gap-3 rounded-lg border border-border-strong bg-elevated/95 p-3.5 shadow-pop backdrop-blur",
+        toast.exiting ? "animate-slide-out-right" : "animate-slide-in-right",
+      )}
+    >
       <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", iconClass)} aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-primary">{toast.title}</p>
-        {toast.description && <p className="mt-0.5 text-[13px] leading-snug text-secondary">{toast.description}</p>}
+        {toast.description && <p className="mt-0.5 text-ui leading-snug text-secondary">{toast.description}</p>}
       </div>
       <button
         type="button"

@@ -112,7 +112,7 @@ export function AddToPlaylistDialog({
         {!loaded ? (
           <p className="py-4 text-sm text-muted">Loading…</p>
         ) : playlists.length === 0 ? (
-          <p className="py-2 text-[13px] text-muted">
+          <p className="py-2 text-ui text-muted">
             You have no playlists yet. Create your first one below.
           </p>
         ) : (
@@ -126,7 +126,7 @@ export function AddToPlaylistDialog({
                     type="button"
                     onClick={() => toggle(p)}
                     disabled={busy}
-                    className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-[13.5px] transition-colors hover:bg-hover disabled:opacity-50"
+                    className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-ui transition-colors hover:bg-hover disabled:opacity-50"
                   >
                     <span
                       className={cn(
@@ -139,7 +139,7 @@ export function AddToPlaylistDialog({
                       {member && <Check className="h-3.5 w-3.5" />}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-secondary">{p.name}</span>
-                    <span className="font-mono text-[10.5px] tabular-nums text-muted">
+                    <span className="font-mono text-micro tabular-nums text-muted">
                       {p.video_count}
                     </span>
                   </button>

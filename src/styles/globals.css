@@ -100,6 +100,12 @@
   --shadow-card-hover: var(--shadow-card-hover);
   --shadow-pop: var(--shadow-pop);
   --shadow-glow: var(--shadow-glow);
+
+  /* Type scale — four defensible steps instead of scattered pixel sizes */
+  --text-micro: 11px;
+  --text-caption: 12.5px;
+  --text-ui: 13.5px;
+  --text-lead: 15px;
 }
 
 @layer base {
@@ -141,6 +147,26 @@
   label[for],
   summary {
     cursor: pointer;
+  }
+
+  /* Instant press feedback — respond on pointer-down, not release */
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active,
+  [role="option"]:not(:disabled):active,
+  [role="menuitem"]:not(:disabled):active,
+  label[for]:active,
+  summary:active {
+    transform: scale(0.97);
+  }
+
+  a:active {
+    opacity: 0.8;
+  }
+
+  /* Kill the double-tap zoom delay on interactive controls */
+  button,
+  a[href] {
+    touch-action: manipulation;
   }
 
   /* Scrollbar */
@@ -231,6 +257,32 @@
   }
 }
 
+/* Exit animations — mirrored paths so surfaces leave the way they came */
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scale-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+}
+
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
 .animate-fade-up {
   animation: fade-up 0.25s ease-out both;
 }
@@ -247,12 +299,43 @@
   animation: slide-in-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.animate-fade-out {
+  animation: fade-out 0.15s ease-in both;
+}
+
+.animate-scale-out {
+  animation: scale-out 0.15s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.animate-slide-out-left {
+  animation: slide-out-left 0.2s ease-in both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-in,
   .animate-scale-in,
   .animate-slide-in-right,
+  .animate-fade-out,
+  .animate-scale-out,
+  .animate-slide-out-right,
+  .animate-slide-out-left,
   .skeleton {
     animation: none;
+  }
+
+  /* Press feedback without motion — dim instead of scale */
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active,
+  [role="option"]:not(:disabled):active,
+  [role="menuitem"]:not(:disabled):active,
+  label[for]:active,
+  summary:active {
+    transform: none;
+    filter: brightness(0.85);
   }
 }

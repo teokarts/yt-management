@@ -284,10 +284,10 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
               </div>
 
               <div>
-                <h3 className="font-display text-[15px] font-semibold leading-snug text-primary">
+                <h3 className="font-display text-lead font-semibold leading-snug text-primary">
                   {metadata?.title}
                 </h3>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] text-muted">
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-caption text-muted">
                   {metadata?.channelName && (
                     <span className="inline-flex items-center gap-1.5">
                       <User className="h-3.5 w-3.5" />
@@ -316,8 +316,8 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                   aria-pressed={isFavorite}
                   className={
                     isFavorite
-                      ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-danger-soft px-3 py-1.5 text-[12.5px] font-medium text-danger"
-                      : "inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] font-medium text-secondary hover:border-border-strong hover:text-primary"
+                      ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-danger-soft px-3 py-1.5 text-caption font-medium text-danger"
+                      : "inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-caption font-medium text-secondary hover:border-border-strong hover:text-primary"
                   }
                 >
                   <Heart className={isFavorite ? "h-3.5 w-3.5 fill-current" : "h-3.5 w-3.5"} />
@@ -329,8 +329,8 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                   aria-pressed={isWatchLater}
                   className={
                     isWatchLater
-                      ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-accent-soft px-3 py-1.5 text-[12.5px] font-medium text-accent-strong"
-                      : "inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] font-medium text-secondary hover:border-border-strong hover:text-primary"
+                      ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-accent-soft px-3 py-1.5 text-caption font-medium text-accent-strong"
+                      : "inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-caption font-medium text-secondary hover:border-border-strong hover:text-primary"
                   }
                 >
                   <Clock className="h-3.5 w-3.5" />
@@ -340,7 +340,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
 
               {duplicate && (
                 <div className="rounded-lg border border-accent/30 bg-accent-soft/60 p-4">
-                  <p className="text-[13px] leading-relaxed text-accent-strong">
+                  <p className="text-ui leading-relaxed text-accent-strong">
                     <strong>This video was saved</strong> {duplicate.updated_at ? `on ${formatDate(duplicate.updated_at)}` : "earlier"}.
                     {editingDuplicate
                       ? " You can update its categories and tags below."
@@ -370,7 +370,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
               <button
                 type="button"
                 onClick={() => setShowNewCategory((v) => !v)}
-                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-accent transition-colors hover:text-accent-strong"
+                className="inline-flex items-center gap-1 text-caption font-medium text-accent transition-colors hover:text-accent-strong"
               >
                 {showNewCategory ? (
                   <>
@@ -401,7 +401,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                 <div className="space-y-1.5">
                   <label
                     htmlFor="new-cat-parent"
-                    className="block text-[12px] font-medium text-secondary"
+                    className="block text-caption font-medium text-secondary"
                   >
                     Nest under
                   </label>
@@ -409,7 +409,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                     id="new-cat-parent"
                     value={newCatParentId ?? ""}
                     onChange={(e) => setNewCatParentId(e.target.value || null)}
-                    className="h-9 w-full rounded-md border border-border bg-elevated px-2.5 text-[13px] text-primary transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="h-9 w-full rounded-md border border-border bg-elevated px-2.5 text-ui text-primary transition-colors hover:border-border-strong focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
                   >
                     <option value="">Top level — no parent</option>
                     {parentOptions.map((opt) => (
@@ -418,7 +418,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11.5px] leading-snug text-muted">
+                  <p className="text-caption leading-snug text-muted">
                     {newCatParentId
                       ? "Creates a subcategory inside the selected category."
                       : "Pick a parent to create a subcategory instead."}
@@ -432,7 +432,7 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                       aria-label={`Color ${c}`}
                       onClick={() => setNewCatColor(c)}
                       className={cn(
-                        "h-6 w-6 rounded-full transition-transform hover:scale-110",
+                        "h-6 w-6 rounded-full transition-transform hover:scale-110 motion-reduce:transition-none motion-reduce:hover:scale-100",
                         newCatColor === c &&
                           "ring-2 ring-primary ring-offset-2 ring-offset-sunken",
                       )}
@@ -495,8 +495,8 @@ export function AddVideoDialog({ open, onClose, categories, tags }: AddVideoDial
                   onClick={() => setWatchStatus(s)}
                   className={
                     watchStatus === s
-                      ? "rounded px-2 py-1.5 text-[12.5px] font-medium capitalize text-accent-contrast bg-accent"
-                      : "rounded px-2 py-1.5 text-[12.5px] font-medium capitalize text-secondary hover:text-primary"
+                      ? "rounded px-2 py-1.5 text-caption font-medium capitalize text-accent-contrast bg-accent"
+                      : "rounded px-2 py-1.5 text-caption font-medium capitalize text-secondary hover:text-primary"
                   }
                 >
                   {s}

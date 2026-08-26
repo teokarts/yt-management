@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useExitTransition } from "@/lib/use-exit-transition";
 
 export interface MenuItem {
   label?: string;
@@ -32,6 +33,11 @@ export function DropdownMenu({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
+  // Keep the portal mounted while the exit animation plays. Position freezes
+  // during the out-transition and outside-click/scroll listeners are already
+  // gone, so a closing menu is inert.
+  const mounted = useExitTransition(open, 150);
+  const closing = !open && mounted;
   const [position, setPosition] = useState<{
     top: number;
     left: number;
@@ -115,14 +121,18 @@ export function DropdownMenu({
   return (
     <div ref={containerRef} className="relative inline-flex">
       {trigger({ open, toggle })}
-      {open && position
+      {mounted && position
         ? createPortal(
             <div
               ref={menuRef}
               role="menu"
               aria-label={label}
-              className="animate-scale-in fixed z-[70] w-[220px] overflow-y-auto overscroll-contain rounded-lg border border-border-strong bg-elevated py-1.5 shadow-pop"
+              className={cn(
+                "fixed z-[70] w-[220px] overflow-y-auto overscroll-contain rounded-lg border border-border-strong bg-elevated py-1.5 shadow-pop",
+                closing ? "animate-scale-out pointer-events-none" : "animate-scale-in",
+              )}
               style={{ top: position.top, left: position.left, maxHeight: position.maxHeight }}
+              aria-hidden={closing || undefined}
             >
               {items.map((item, i) => (
                 <div key={i}>
@@ -138,7 +148,7 @@ export function DropdownMenu({
                         item.onSelect?.();
                       }}
                       className={cn(
-                        "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors",
+                        "flex w-full items-center gap-2.5 px-3 py-2 text-left text-ui transition-colors",
                         "disabled:pointer-events-none disabled:opacity-40",
                         item.danger
                           ? "text-danger hover:bg-danger/10"
@@ -148,7 +158,7 @@ export function DropdownMenu({
                       {item.icon && <span className="h-4 w-4 shrink-0">{item.icon}</span>}
                       <span className="flex-1">{item.label}</span>
                       {item.shortcut && (
-                        <kbd className="font-mono text-[10px] text-muted">{item.shortcut}</kbd>
+                        <kbd className="font-mono text-micro text-muted">{item.shortcut}</kbd>
                       )}
                       {item.active && <Check className="h-3.5 w-3.5 text-accent-strong" />}
                     </button>

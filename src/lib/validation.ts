@@ -107,6 +107,11 @@ export const addToPlaylistSchema = z.object({
 
 export const removeFromPlaylistSchema = addToPlaylistSchema;
 
+export const reorderPlaylistSchema = z.object({
+  playlistId: categoryIdSchema,
+  videoIds: z.array(videoIdSchema).min(1).max(500),
+});
+
 export const createTagSchema = z.object({ name: tagNameSchema });
 
 export const pinTagSchema = z.object({ id: categoryIdSchema, isPinned: z.boolean() });

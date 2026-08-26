@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-d
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { AppDataProvider } from "@/context/app-data-context";
 import { ToastProvider } from "@/components/ui/toast";
+import { RouteSkeleton } from "@/components/ui/route-skeleton";
 import { FullScreenLoader } from "@/pages/app/full-screen-loader";
 
 const LandingPage = lazy(() => import("@/pages/landing").then((m) => ({ default: m.LandingPage })));
@@ -44,7 +45,7 @@ const NotFoundPage = lazy(() =>
 );
 
 function RouteLoader({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<FullScreenLoader />}>{children}</Suspense>;
+  return <Suspense fallback={<RouteSkeleton />}>{children}</Suspense>;
 }
 
 function ScrollToTop() {

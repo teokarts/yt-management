@@ -62,13 +62,13 @@ function StatCard({
   return (
     <div className="rounded-lg border border-border bg-elevated p-4 transition-colors hover:border-border-strong">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[12px] font-medium text-muted">{label}</p>
+        <p className="text-caption font-medium text-muted">{label}</p>
         <span className={iconClass}>{icon}</span>
       </div>
       <p className="mt-2 font-display text-[28px] font-bold leading-none tracking-tight text-primary tabular-nums">
         {value}
       </p>
-      {sub && <p className="mt-1.5 text-[12px] text-muted">{sub}</p>}
+      {sub && <p className="mt-1.5 text-caption text-muted">{sub}</p>}
     </div>
   );
 }
@@ -87,7 +87,7 @@ function Panel({
   return (
     <section className="rounded-lg border border-border bg-elevated">
       <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <h2 className="flex items-center gap-2 font-display text-[14px] font-semibold text-primary">
+        <h2 className="flex items-center gap-2 font-display text-ui font-semibold text-primary">
           <span className="text-muted">{icon}</span>
           {title}
         </h2>
@@ -105,7 +105,7 @@ function ActivityChart({ series }: { series: AdminSeriesPoint[] }) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-4 text-[12px] text-muted">
+      <div className="mb-4 flex flex-wrap items-center gap-4 text-caption text-muted">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> Videos added
           <span className="font-mono text-accent-strong">{totalVideos}</span>
@@ -155,23 +155,23 @@ function ActivityChart({ series }: { series: AdminSeriesPoint[] }) {
 function TopUsers({ topUsers }: { topUsers: AdminTopUser[] }) {
   const max = Math.max(1, ...topUsers.map((u) => u.video_count));
   if (topUsers.length === 0) {
-    return <p className="text-[13px] text-muted">No videos saved yet.</p>;
+    return <p className="text-ui text-muted">No videos saved yet.</p>;
   }
   return (
     <ul className="space-y-3">
       {topUsers.map((u, i) => (
         <li key={u.user_id} className="flex items-center gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-hover font-mono text-[11px] text-secondary">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-hover font-mono text-micro text-secondary">
             {i + 1}
           </span>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent-strong">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-caption font-bold text-accent-strong">
             {initialOf(u.display_name ?? u.email)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-medium text-primary">
+            <p className="truncate text-ui font-medium text-primary">
               {u.display_name ?? "Unnamed user"}
             </p>
-            <p className="truncate text-[11.5px] text-muted">{u.email ?? "no email"}</p>
+            <p className="truncate text-caption text-muted">{u.email ?? "no email"}</p>
           </div>
           <div className="hidden items-center gap-2 sm:flex">
             <div className="h-1.5 w-20 overflow-hidden rounded-full bg-hover">
@@ -180,7 +180,7 @@ function TopUsers({ topUsers }: { topUsers: AdminTopUser[] }) {
                 style={{ width: `${Math.max(6, (u.video_count / max) * 100)}%` }}
               />
             </div>
-            <span className="w-9 text-right font-mono text-[12px] tabular-nums text-secondary">
+            <span className="w-9 text-right font-mono text-caption tabular-nums text-secondary">
               {u.video_count}
             </span>
           </div>
@@ -192,7 +192,7 @@ function TopUsers({ topUsers }: { topUsers: AdminTopUser[] }) {
 
 function RecentActivity({ items }: { items: AdminStats["recentActivity"] }) {
   if (items.length === 0) {
-    return <p className="text-[13px] text-muted">No recent activity.</p>;
+    return <p className="text-ui text-muted">No recent activity.</p>;
   }
   return (
     <ul className="space-y-3">
@@ -202,10 +202,10 @@ function RecentActivity({ items }: { items: AdminStats["recentActivity"] }) {
             <Film className="h-3.5 w-3.5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 text-[13px] leading-snug text-primary">{item.title}</p>
-            <p className="mt-0.5 truncate text-[11.5px] text-muted">{item.user_name}</p>
+            <p className="line-clamp-2 text-ui leading-snug text-primary">{item.title}</p>
+            <p className="mt-0.5 truncate text-caption text-muted">{item.user_name}</p>
           </div>
-          <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted">
+          <span className="shrink-0 font-mono text-micro tabular-nums text-muted">
             {timeAgo(item.created_at)}
           </span>
         </li>
@@ -216,13 +216,13 @@ function RecentActivity({ items }: { items: AdminStats["recentActivity"] }) {
 
 function UsersTable({ users }: { users: AdminUserRow[] }) {
   if (users.length === 0) {
-    return <p className="text-[13px] text-muted">No users yet.</p>;
+    return <p className="text-ui text-muted">No users yet.</p>;
   }
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[680px] text-left text-[13px]">
+      <table className="w-full min-w-[680px] text-left text-ui">
         <thead>
-          <tr className="border-b border-border text-[11px] font-medium uppercase tracking-wider text-muted">
+          <tr className="border-b border-border text-micro font-medium uppercase tracking-wider text-muted">
             <th className="py-2.5 pr-3 font-medium">User</th>
             <th className="py-2.5 pr-3 font-medium">Joined</th>
             <th className="py-2.5 pr-3 text-right font-medium">Videos</th>
@@ -234,7 +234,7 @@ function UsersTable({ users }: { users: AdminUserRow[] }) {
             <tr key={u.id} className="transition-colors hover:bg-hover/40">
               <td className="py-2.5 pr-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-hover text-[11px] font-bold text-secondary">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-hover text-micro font-bold text-secondary">
                     {initialOf(u.display_name ?? u.email)}
                   </span>
                   <div className="min-w-0">
@@ -244,7 +244,7 @@ function UsersTable({ users }: { users: AdminUserRow[] }) {
                         <Crown className="h-3.5 w-3.5 shrink-0 text-accent" />
                       )}
                     </p>
-                    <p className="truncate text-[11.5px] text-muted">{u.email ?? "no email"}</p>
+                    <p className="truncate text-caption text-muted">{u.email ?? "no email"}</p>
                   </div>
                 </div>
               </td>
@@ -297,7 +297,7 @@ export function AdminDashboard({
           </h1>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted">
             <span>Usage and account analytics across every user.</span>
-            <span className="inline-flex items-center gap-1 font-mono text-[11px]">
+            <span className="inline-flex items-center gap-1 font-mono text-micro">
               <Clock className="h-3 w-3" /> Updated {new Date().toLocaleTimeString("en-GB")}
             </span>
           </p>
@@ -310,7 +310,7 @@ export function AdminDashboard({
             to="/admin/profile"
             title="Admin profile"
             aria-label="Admin profile"
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-elevated text-[13px] font-bold text-accent-strong transition-colors hover:border-border-strong hover:bg-hover"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-elevated text-ui font-bold text-accent-strong transition-colors hover:border-border-strong hover:bg-hover"
           >
             {adminInitial}
           </Link>
@@ -413,7 +413,7 @@ export function AdminDashboard({
           title="All users"
           icon={<Users className="h-4 w-4" />}
           action={
-            <span className="font-mono text-[11px] tabular-nums text-muted">
+            <span className="font-mono text-micro tabular-nums text-muted">
               {users.length} shown
             </span>
           }

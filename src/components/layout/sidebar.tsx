@@ -50,7 +50,7 @@ function NavItem({
     <Link
       to={href}
       className={cn(
-        "group flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors",
+        "group flex items-center gap-3 rounded-md px-3 py-2 text-ui transition-colors",
         active
           ? "bg-selected text-primary"
           : "text-secondary hover:bg-hover hover:text-primary",
@@ -64,7 +64,7 @@ function NavItem({
       {count !== undefined && count > 0 && (
         <span
           className={cn(
-            "rounded-full px-1.5 py-0.5 font-mono text-[10.5px] tabular-nums",
+            "rounded-full px-1.5 py-0.5 font-mono text-micro tabular-nums",
             active ? "bg-accent/15 text-accent-strong" : "bg-elevated text-muted group-hover:text-secondary",
           )}
         >
@@ -205,7 +205,7 @@ function SidebarInner(props: SidebarProps) {
             to={`/app/category/${cat.slug}`}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-w-0 flex-1 items-center gap-2.5 rounded-md py-2 text-[13.5px] transition-colors",
+              "flex min-w-0 flex-1 items-center gap-2.5 rounded-md py-2 text-ui transition-colors",
               active ? "text-primary" : "text-secondary hover:bg-hover hover:text-primary",
             )}
           >
@@ -218,7 +218,7 @@ function SidebarInner(props: SidebarProps) {
             />
             <span className="flex-1 truncate">{cat.name}</span>
             {count > 0 && (
-              <span className="font-mono text-[10.5px] tabular-nums text-muted group-hover:text-secondary">
+              <span className="font-mono text-micro tabular-nums text-muted group-hover:text-secondary">
                 {count}
               </span>
             )}
@@ -251,7 +251,7 @@ function SidebarInner(props: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4" aria-label="Main navigation">
         <div className="space-y-0.5">
-          <p className="px-3 pb-1.5 pt-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+          <p className="px-3 pb-1.5 pt-2 font-mono text-micro font-semibold uppercase tracking-[0.14em] text-muted">
             Library
           </p>
           <NavItem
@@ -279,7 +279,7 @@ function SidebarInner(props: SidebarProps) {
 
         <div className="mt-6 space-y-0.5">
           <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+            <p className="font-mono text-micro font-semibold uppercase tracking-[0.14em] text-muted">
               Categories
             </p>
             <button
@@ -303,7 +303,7 @@ function SidebarInner(props: SidebarProps) {
 
         <div className="mt-6 space-y-0.5">
           <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+            <p className="font-mono text-micro font-semibold uppercase tracking-[0.14em] text-muted">
               Playlists
             </p>
             <button
@@ -329,7 +329,7 @@ function SidebarInner(props: SidebarProps) {
                   to={`/app/playlist/${pl.slug}`}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors",
+                    "group flex items-center gap-3 rounded-md px-3 py-2 text-ui transition-colors",
                     active
                       ? "bg-selected text-primary"
                       : "text-secondary hover:bg-hover hover:text-primary",
@@ -343,7 +343,7 @@ function SidebarInner(props: SidebarProps) {
                   />
                   <span className="flex-1 truncate">{pl.name}</span>
                   {pl.video_count > 0 && (
-                    <span className="font-mono text-[10.5px] tabular-nums text-muted group-hover:text-secondary">
+                    <span className="font-mono text-micro tabular-nums text-muted group-hover:text-secondary">
                       {pl.video_count}
                     </span>
                   )}
@@ -355,7 +355,7 @@ function SidebarInner(props: SidebarProps) {
 
         <div className="mt-6 space-y-0.5">
           <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+            <p className="font-mono text-micro font-semibold uppercase tracking-[0.14em] text-muted">
               Pinned tags
             </p>
             <Link
@@ -379,7 +379,7 @@ function SidebarInner(props: SidebarProps) {
                 to={`/app/tag/${tag.slug}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group flex items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] transition-colors",
+                  "group flex items-center gap-2.5 rounded-md px-3 py-2 text-ui transition-colors",
                   active
                     ? "bg-selected text-primary"
                     : "text-secondary hover:bg-hover hover:text-primary",
@@ -388,7 +388,7 @@ function SidebarInner(props: SidebarProps) {
                 <Hash className={cn("h-3.5 w-3.5 shrink-0", active ? "text-accent" : "text-muted group-hover:text-secondary")} />
                 <span className="flex-1 truncate">{tag.name}</span>
                 {tag.video_count > 0 && (
-                  <span className="font-mono text-[10.5px] tabular-nums text-muted group-hover:text-secondary">
+                  <span className="font-mono text-micro tabular-nums text-muted group-hover:text-secondary">
                     {tag.video_count}
                   </span>
                 )}
@@ -402,20 +402,20 @@ function SidebarInner(props: SidebarProps) {
         <Link
           to="/app/settings"
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors",
+            "flex items-center gap-3 rounded-md px-3 py-2 text-ui transition-colors",
             pathname === "/app/settings"
               ? "bg-selected text-primary"
               : "text-secondary hover:bg-hover hover:text-primary",
           )}
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-contrast">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-micro font-bold text-accent-contrast">
             {initial}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-medium text-primary">
+            <span className="block truncate text-ui font-medium text-primary">
               {props.displayName || "Your profile"}
             </span>
-            <span className="block truncate text-[11px] text-muted">{props.email}</span>
+            <span className="block truncate text-micro text-muted">{props.email}</span>
           </span>
           <Settings className="h-4 w-4 shrink-0 text-muted" />
         </Link>
@@ -423,7 +423,7 @@ function SidebarInner(props: SidebarProps) {
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="mt-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] text-muted transition-colors hover:bg-hover hover:text-danger disabled:opacity-50"
+          className="mt-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-ui text-muted transition-colors hover:bg-hover hover:text-danger disabled:opacity-50"
         >
           <LogOut className="h-4 w-4" />
           {signingOut ? "Signing out…" : "Sign out"}

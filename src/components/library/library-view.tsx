@@ -312,7 +312,7 @@ export function LibraryView({
             <h1 className="font-display text-2xl font-bold tracking-tight text-primary md:text-[28px]">
               {context.title}
             </h1>
-            <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 font-mono text-[12px] tabular-nums text-secondary">
+            <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 font-mono text-caption tabular-nums text-secondary">
               {total} {total === 1 ? "video" : "videos"}
             </span>
           </div>
@@ -347,7 +347,7 @@ export function LibraryView({
             </button>
           )}
           {!q && (
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-elevated px-1.5 py-0.5 font-mono text-[10px] text-muted sm:block">
+            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-elevated px-1.5 py-0.5 font-mono text-micro text-muted sm:block">
               /
             </kbd>
           )}
@@ -370,7 +370,7 @@ export function LibraryView({
               <SlidersHorizontal className="h-4 w-4" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="ml-1 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-contrast">
+                <span className="ml-1 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-micro font-bold text-accent-contrast">
                   {activeFilterCount}
                 </span>
               )}
@@ -444,7 +444,7 @@ export function LibraryView({
       {/* Context filter chips */}
       {isContextFilter && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-[12px] text-muted">Showing:</span>
+          <span className="text-caption text-muted">Showing:</span>
           {context.baseCategoryIds?.map((id) => {
             const cat = categories.find((c) => c.id === id);
             if (!cat) return null;
@@ -452,7 +452,7 @@ export function LibraryView({
               !cat.parent_id || !context.baseCategoryIds?.includes(cat.parent_id);
             if (!isTopOfSelection) return null;
             return (
-              <span key={id} className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent-strong">
+              <span key={id} className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-caption font-medium text-accent-strong">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cat.color ?? "currentColor" }} />
                 {cat.name}
               </span>
@@ -461,25 +461,25 @@ export function LibraryView({
           {context.baseTagIds?.map((id) => {
             const tag = tags.find((t) => t.id === id);
             return tag ? (
-              <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent-strong">
+              <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-caption font-medium text-accent-strong">
                 <Hash className="h-3 w-3" /> {tag.name}
               </span>
             ) : null;
           })}
           {context.favorite && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-danger/30 bg-danger-soft px-2.5 py-1 text-[12px] font-medium text-danger">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-danger/30 bg-danger-soft px-2.5 py-1 text-caption font-medium text-danger">
               <Heart className="h-3 w-3 fill-current" /> Favorites
             </span>
           )}
           {context.watchLater && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent-strong">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-caption font-medium text-accent-strong">
               <Clock className="h-3 w-3" /> Watch later
             </span>
           )}
           <button
             type="button"
             onClick={() => navigate("/app")}
-            className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-muted transition-colors hover:text-primary"
+            className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption text-muted transition-colors hover:text-primary"
           >
             <X className="h-3 w-3" /> Clear
           </button>
@@ -489,13 +489,13 @@ export function LibraryView({
       {/* Active filter chips */}
       {activeClientFilters.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-[12px] text-muted">Filtering:</span>
+          <span className="text-caption text-muted">Filtering:</span>
           {activeClientFilters.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={f.clear}
-              className="inline-flex items-center gap-1 rounded-full border border-border-strong bg-elevated px-2.5 py-1 text-[12px] font-medium text-secondary transition-colors hover:border-accent/50 hover:text-primary"
+              className="inline-flex items-center gap-1 rounded-full border border-border-strong bg-elevated px-2.5 py-1 text-caption font-medium text-secondary transition-colors hover:border-accent/50 hover:text-primary"
             >
               {f.label}
               <X className="h-3 w-3" />
@@ -504,7 +504,7 @@ export function LibraryView({
           <button
             type="button"
             onClick={clearAll}
-            className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-muted transition-colors hover:text-primary"
+            className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption text-muted transition-colors hover:text-primary"
           >
             <X className="h-3 w-3" /> Clear all
           </button>

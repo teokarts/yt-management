@@ -80,7 +80,7 @@ export function TagInput({
         {value.map((tag, i) => (
           <span
             key={`${tag}-${i}`}
-            className="inline-flex items-center gap-1 rounded-full bg-accent-soft py-1 pl-2.5 pr-1.5 text-[12.5px] font-medium text-accent-strong"
+            className="inline-flex items-center gap-1 rounded-full bg-accent-soft py-1 pl-2.5 pr-1.5 text-caption font-medium text-accent-strong"
           >
             #{tag}
             <button
@@ -129,13 +129,13 @@ export function TagInput({
                 addTag(t.name);
               }}
               className={cn(
-                "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px]",
+                "flex w-full items-center gap-2.5 px-3 py-2 text-left text-ui",
                 i === highlight ? "bg-hover text-primary" : "text-secondary",
               )}
             >
               <Hash className="h-3.5 w-3.5 text-muted" />
               <span className="flex-1">{t.name}</span>
-              {t.is_pinned && <span className="text-[10px] text-muted">pinned</span>}
+              {t.is_pinned && <span className="text-micro text-muted">pinned</span>}
             </button>
           ))}
           {query && !available.some((t) => normalized(t.name) === query) && (
@@ -148,7 +148,7 @@ export function TagInput({
                 addTag(query);
               }}
               className={cn(
-                "flex w-full items-center gap-2.5 border-t border-border px-3 py-2 text-left text-[13px]",
+                "flex w-full items-center gap-2.5 border-t border-border px-3 py-2 text-left text-ui",
                 highlight >= available.length ? "bg-hover text-accent-strong" : "text-accent-strong",
               )}
             >

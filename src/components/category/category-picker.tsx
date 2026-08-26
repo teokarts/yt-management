@@ -23,7 +23,7 @@ export function CategoryPicker({
 
   if (categories.length === 0) {
     return (
-      <p className="rounded-md border border-dashed border-border px-3 py-3 text-[13px] text-muted">
+      <p className="rounded-md border border-dashed border-border px-3 py-3 text-ui text-muted">
         No categories yet — use &quot;New&quot; above to create your first one.
       </p>
     );
@@ -42,7 +42,7 @@ export function CategoryPicker({
             onClick={() => toggle(cat.id)}
             title={isSubcategory ? "Subcategory" : undefined}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-medium transition-all",
+              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-ui font-medium transition-all",
               active
                 ? "border-transparent bg-selected text-primary shadow-[0_0_0_1px_var(--border-strong)]"
                 : "border-border text-secondary hover:border-border-strong hover:text-primary",

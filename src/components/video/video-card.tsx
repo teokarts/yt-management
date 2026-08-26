@@ -41,29 +41,29 @@ const gridStyles: Record<
   cozy: {
     card: "p-4",
     body: "mt-4 gap-1.5",
-    title: "text-[15px]",
-    channel: "text-[12.5px]",
-    chip: "text-[11px]",
-    tag: "text-[11px]",
-    footer: "text-[12px]",
+    title: "text-lead",
+    channel: "text-caption",
+    chip: "text-micro",
+    tag: "text-micro",
+    footer: "text-caption",
   },
   comfortable: {
     card: "p-3",
     body: "mt-3 gap-1",
-    title: "text-[13.5px]",
-    channel: "text-[12px]",
-    chip: "text-[10.5px]",
-    tag: "text-[10.5px]",
-    footer: "text-[11px]",
+    title: "text-ui",
+    channel: "text-caption",
+    chip: "text-micro",
+    tag: "text-micro",
+    footer: "text-micro",
   },
   compact: {
     card: "p-2.5",
     body: "mt-2 gap-0.5",
-    title: "text-[12.5px]",
-    channel: "text-[11px]",
-    chip: "text-[10px]",
-    tag: "text-[10px]",
-    footer: "text-[10.5px]",
+    title: "text-caption",
+    channel: "text-micro",
+    chip: "text-micro",
+    tag: "text-micro",
+    footer: "text-micro",
   },
 };
 
@@ -368,7 +368,7 @@ export function VideoCard({
       </span>
 
       {video.duration && (
-        <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[11px] font-medium text-white">
+        <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 font-mono text-micro font-medium text-white">
           {formatDuration(video.duration)}
         </span>
       )}
@@ -376,7 +376,7 @@ export function VideoCard({
       {status.label && (
         <span
           className={cn(
-            "absolute left-1.5 top-1.5 flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold",
+            "absolute left-1.5 top-1.5 flex items-center gap-1 rounded px-1.5 py-0.5 text-micro font-semibold",
             status.className,
           )}
         >
@@ -409,22 +409,22 @@ export function VideoCard({
             <div className="flex items-start justify-between gap-2">
               <Link
                 to={`/app/video/${video.id}`}
-                className="line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-primary transition-colors hover:text-accent-strong"
+                className="line-clamp-2 flex-1 text-lead font-semibold leading-snug text-primary transition-colors hover:text-accent-strong"
               >
                 {video.title}
               </Link>
               {menu}
             </div>
             {video.channel_name && (
-              <p className="truncate text-[12.5px] text-muted">{video.channel_name}</p>
+              <p className="truncate text-caption text-muted">{video.channel_name}</p>
             )}
             {video.description && (
-              <p className="line-clamp-2 text-[12.5px] leading-relaxed text-secondary">
+              <p className="line-clamp-2 text-caption leading-relaxed text-secondary">
                 {truncate(video.description, 180)}
               </p>
             )}
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">{meta("text-[11px]")}</div>
-            {footer("text-[11px]")}
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">{meta("text-micro")}</div>
+            {footer("text-micro")}
           </div>
         </>
       ) : (
@@ -524,13 +524,13 @@ export function VideoCard({
               type="button"
               disabled={!shareToken}
               onClick={copyShareLink}
-              className="shrink-0 rounded-md bg-accent-soft px-3 py-1.5 text-[12.5px] font-medium text-accent-strong transition-colors hover:bg-accent-soft-strong disabled:opacity-50"
+              className="shrink-0 rounded-md bg-accent-soft px-3 py-1.5 text-caption font-medium text-accent-strong transition-colors hover:bg-accent-soft-strong disabled:opacity-50"
             >
               Copy link
             </button>
           </div>
           <div>
-            <p className="mb-1.5 text-[12px] font-medium text-secondary">Note for the recipient</p>
+            <p className="mb-1.5 text-caption font-medium text-secondary">Note for the recipient</p>
             <textarea
               value={shareNotes}
               onChange={(e) => setShareNotes(e.target.value)}
@@ -538,7 +538,7 @@ export function VideoCard({
               rows={3}
               className="w-full resize-none rounded-md border border-border bg-elevated px-3 py-2 text-sm text-primary placeholder:text-muted/70 shadow-sm transition-colors hover:border-border-strong focus:border-accent/40 focus:outline-none"
             />
-            <p className="mt-1.5 text-[11.5px] text-muted">
+            <p className="mt-1.5 text-caption text-muted">
               Anyone with this link can watch the video and save it to their own account.
             </p>
           </div>

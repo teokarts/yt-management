@@ -18,6 +18,7 @@ import {
   updatePlaylistSchema,
   deletePlaylistSchema,
   removeFromPlaylistSchema,
+  reorderPlaylistSchema,
 } from "@/lib/validation";
 import { loadLibraryPage, type LibraryFilters } from "@/lib/library";
 import { slugify, normalizeTag } from "@/lib/utils";
@@ -863,5 +864,27 @@ export async function removeFromPlaylist(input: {
     .eq("video_id", parsed.data.videoId);
 
   if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/** Persists a manual order: positions are dense integers 0..n-1 in list order. */
+export async function reorderPlaylist(input: {
+  playlistId: string;
+  videoIds: string[];
+}): Promise<ActionResult> {
+  await currentUser();
+  const parsed = reorderPlaylistSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  for (let i = 0; i < parsed.data.videoIds.length; i++) {
+    const { error } = await supabase
+      .from("playlist_videos")
+      .update({ position: i })
+      .eq("playlist_id", parsed.data.playlistId)
+      .eq("video_id", parsed.data.videoIds[i]);
+    if (error) return { ok: false, error: error.message };
+  }
   return { ok: true };
 }

@@ -122,7 +122,7 @@ export function Tooltip({
             "--ty": pos.top,
           } as React.CSSProperties}
         >
-          <div className="rounded-md bg-elevated px-2 py-1 text-[11px] font-medium text-primary shadow-pop border border-border-strong whitespace-nowrap">
+          <div className="rounded-md bg-elevated px-2 py-1 text-micro font-medium text-primary shadow-pop border border-border-strong whitespace-nowrap">
             {content}
           </div>
           <div

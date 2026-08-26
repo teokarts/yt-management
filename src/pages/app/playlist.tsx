@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ListVideo, Pencil, Trash2, ArrowLeft, MoreHorizontal } from "lucide-react";
+import { ListVideo, Pencil, Trash2, ArrowLeft, MoreHorizontal, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   fetchPlaylistBySlug,
@@ -9,10 +9,12 @@ import {
 import { deletePlaylist } from "@/lib/api";
 import { PlaylistDialog } from "@/components/playlist/playlist-dialog";
 import { VideoGrid } from "@/components/video/video-grid";
+import { SortablePlaylistList } from "@/components/video/sortable-playlist-list";
 import { PageLoader } from "@/components/library/page-loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm";
 import { DropdownMenu, type MenuItem } from "@/components/ui/menu";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { useAppData } from "@/context/app-data-context";
 import type { CardDensity } from "@/lib/constants";
@@ -30,6 +32,7 @@ export function PlaylistPage() {
   const [notFound, setNotFound] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [reordering, setReordering] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!slug) return;
@@ -110,11 +113,18 @@ export function PlaylistPage() {
     navigate("/app");
   };
 
+  // Leaving reorder mode re-fetches so the grid reflects the persisted order.
+  const toggleReorder = () => {
+    const next = !reordering;
+    setReordering(next);
+    if (!next) void loadData();
+  };
+
   return (
     <div className="mx-auto w-full max-w-[1600px] px-4 py-6 md:px-8">
       <Link
         to="/app"
-        className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
+        className="mb-5 inline-flex items-center gap-1.5 text-ui text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" /> Back to library
       </Link>
@@ -129,32 +139,48 @@ export function PlaylistPage() {
               {playlist.name}
             </h1>
           </div>
-          <p className="mt-2 text-[13px] text-muted">
+          <p className="mt-2 text-ui text-muted">
             {playlist.video_count === 0
               ? "Empty playlist"
-              : `${playlist.video_count} ${playlist.video_count === 1 ? "video" : "videos"}, in the order you added them`}
+              : playlist.video_count === 1
+                ? "1 video"
+                : `${playlist.video_count} videos · use Reorder to rearrange them`}
           </p>
           {playlist.description && (
-            <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-secondary">
+            <p className="mt-1 max-w-2xl text-ui leading-relaxed text-secondary">
               {playlist.description}
             </p>
           )}
         </div>
-        <DropdownMenu
-          label={`Actions for ${playlist.name}`}
-          trigger={({ open, toggle }) => (
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label="Playlist actions"
-              aria-expanded={open}
-              className="rounded-md p-2 text-muted transition-colors hover:bg-hover hover:text-primary"
+        <div className="flex shrink-0 items-center gap-1.5">
+          {videos.length > 1 && (
+            <Button
+              variant={reordering ? "primary" : "secondary"}
+              size="sm"
+              onClick={toggleReorder}
             >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
+              <ArrowUpDown className="h-4 w-4" />
+              {reordering ? "Done" : "Reorder"}
+            </Button>
           )}
-          items={menuItems}
-        />
+          <DropdownMenu
+            label={`Actions for ${playlist.name}`}
+            trigger={({ open, toggle }) => (
+              <button
+                type="button"
+                data-menu-trigger
+                onClick={toggle}
+                aria-label="Playlist actions"
+                aria-haspopup="menu"
+                aria-expanded={open}
+                className="rounded-md p-2 text-muted transition-colors hover:bg-hover hover:text-primary"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            )}
+            items={menuItems}
+          />
+        </div>
       </div>
 
       <div className="mt-8">
@@ -164,6 +190,8 @@ export function PlaylistPage() {
             title="No videos yet"
             description="Open a video in your library and choose “Add to playlist” from its menu."
           />
+        ) : reordering ? (
+          <SortablePlaylistList key="reorder" playlistId={playlist.id} videos={videos} />
         ) : (
           <VideoGrid
             videos={videos}

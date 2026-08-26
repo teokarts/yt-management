@@ -306,7 +306,7 @@ export function HelpPage() {
           body: (
             <>
               <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-left text-[13.5px]">
+                <table className="w-full text-left text-ui">
                   <thead>
                     <tr className="border-b border-border text-muted">
                       <th className="px-4 py-2.5 font-semibold">Πλήκτρο</th>

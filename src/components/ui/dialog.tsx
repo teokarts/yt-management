@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { useCallback, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useExitTransition } from "@/lib/use-exit-transition";
 
 interface DialogProps {
   open: boolean;
@@ -33,6 +34,10 @@ export function Dialog({
 }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
+  // Stay mounted while the exit animation plays; focus/scroll-lock cleanup
+  // happens immediately on close so the panel is inert while it fades out.
+  const mounted = useExitTransition(open);
+  const closing = !open && mounted;
 
   // stable references — avoids [onClose] in deps which causes focus theft when
   // onClose is recreated on every parent render (inline closures in React)
@@ -82,7 +87,7 @@ export function Dialog({
     };
   }, [open]); // only open as dependency
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return createPortal(
     <div
@@ -90,7 +95,10 @@ export function Dialog({
       role="presentation"
     >
       <div
-        className="animate-fade-in absolute inset-0 bg-black/70 backdrop-blur-[2px]"
+        className={cn(
+          "absolute inset-0 bg-black/70 backdrop-blur-[2px]",
+          closing ? "animate-fade-out" : "animate-fade-in",
+        )}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -101,8 +109,9 @@ export function Dialog({
         aria-label={title}
         aria-describedby={description ? "dialog-description" : undefined}
         className={cn(
-          "animate-scale-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-border-strong bg-elevated shadow-pop sm:rounded-xl",
+          "relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-border-strong bg-elevated shadow-pop sm:rounded-xl",
           sizes[size],
+          closing ? "animate-scale-out" : "animate-scale-in",
           className,
         )}
       >

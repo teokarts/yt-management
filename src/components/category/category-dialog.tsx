@@ -166,7 +166,7 @@ export function CategoryDialog({
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-[12px] leading-relaxed text-muted">
+              <p className="mt-1 text-caption leading-relaxed text-muted">
                 Leave empty for a top-level category. Subcategories are nested under their parent.
               </p>
             </div>
@@ -184,7 +184,7 @@ export function CategoryDialog({
                   aria-label={`Color ${c}`}
                   onClick={() => setColor(c)}
                   className={cn(
-                    "h-7 w-7 rounded-full transition-transform hover:scale-110",
+                    "h-7 w-7 rounded-full transition-transform hover:scale-110 motion-reduce:transition-none motion-reduce:hover:scale-100",
                     color === c && "ring-2 ring-primary ring-offset-2 ring-offset-elevated",
                   )}
                   style={{ backgroundColor: c }}

@@ -196,7 +196,7 @@ export function VideoDetail({
     <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8">
       <Link
         to="/app"
-        className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
+        className="mb-5 inline-flex items-center gap-1.5 text-ui text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" /> Back to library
       </Link>
@@ -213,7 +213,7 @@ export function VideoDetail({
               onClick={toggleFavorite}
               disabled={busyFlag}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-all",
+                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-ui font-medium transition-all",
                 video.is_favorite
                   ? "border-transparent bg-danger-soft text-danger"
                   : "border-border text-secondary hover:border-border-strong hover:text-primary",
@@ -227,7 +227,7 @@ export function VideoDetail({
               onClick={toggleWatchLater}
               disabled={busyFlag}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-all",
+                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-ui font-medium transition-all",
                 video.is_watch_later
                   ? "border-transparent bg-accent-soft text-accent-strong"
                   : "border-border text-secondary hover:border-border-strong hover:text-primary",
@@ -239,14 +239,14 @@ export function VideoDetail({
             <button
               type="button"
               onClick={() => setShowPlaylists(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-[13px] font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-ui font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
             >
               <ListPlus className="h-4 w-4" /> Playlist
             </button>
             <button
               type="button"
               onClick={copyUrl}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-[13px] font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-ui font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
             >
               <Copy className="h-4 w-4" /> Copy link
             </button>
@@ -254,7 +254,7 @@ export function VideoDetail({
               href={video.youtube_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-[13px] font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-ui font-medium text-secondary transition-all hover:border-border-strong hover:text-primary"
             >
               <ExternalLink className="h-4 w-4" /> Open on YouTube
             </a>
@@ -280,7 +280,7 @@ export function VideoDetail({
             {video.title}
           </h1>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted">
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-ui text-muted">
             {video.channel_name && (
               <span className="font-medium text-secondary">{video.channel_name}</span>
             )}
@@ -299,7 +299,7 @@ export function VideoDetail({
 
           {/* Status */}
           <div className="mt-5">
-            <p className="mb-1.5 text-[12px] font-medium text-muted">Watch status</p>
+            <p className="mb-1.5 text-caption font-medium text-muted">Watch status</p>
             <div className="grid w-full max-w-xs grid-cols-3 gap-1 rounded-md border border-border bg-sunken p-1">
               {(["unwatched", "watching", "watched"] as const).map((s) => (
                 <button
@@ -307,7 +307,7 @@ export function VideoDetail({
                   type="button"
                   onClick={() => setStatus(s)}
                   className={cn(
-                    "flex items-center justify-center gap-1 rounded px-2 py-1.5 text-[12.5px] font-medium capitalize transition-colors",
+                    "flex items-center justify-center gap-1 rounded px-2 py-1.5 text-caption font-medium capitalize transition-colors",
                     video.watch_status === s
                       ? "bg-accent text-accent-contrast"
                       : "text-secondary hover:text-primary",
@@ -337,7 +337,7 @@ export function VideoDetail({
               <FolderOpen className="h-4 w-4 text-muted" /> Categories
             </h2>
             {video.categories.length === 0 ? (
-              <p className="text-[13px] text-muted">
+              <p className="text-ui text-muted">
                 No categories assigned.{" "}
                 <button
                   type="button"
@@ -364,7 +364,7 @@ export function VideoDetail({
                             <Link
                               to={`/app/category/${node.slug}`}
                               className={cn(
-                                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12.5px] transition-colors",
+                                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-caption transition-colors",
                                 isLeaf
                                   ? "border-border font-medium text-secondary hover:border-border-strong hover:text-primary"
                                   : "border-transparent bg-sunken font-normal text-muted hover:text-secondary",
@@ -391,7 +391,7 @@ export function VideoDetail({
               <Hash className="h-4 w-4 text-muted" /> Tags
             </h2>
             {video.tags.length === 0 ? (
-              <p className="text-[13px] text-muted">
+              <p className="text-ui text-muted">
                 No tags yet.{" "}
                 <button
                   type="button"
@@ -407,7 +407,7 @@ export function VideoDetail({
                   <Link
                     key={tag.id}
                     to={`/app/tag/${tag.slug}`}
-                    className="rounded-full bg-accent-soft px-2.5 py-1 text-[12.5px] font-medium text-accent-strong transition-colors hover:bg-accent-soft-strong"
+                    className="rounded-full bg-accent-soft px-2.5 py-1 text-caption font-medium text-accent-strong transition-colors hover:bg-accent-soft-strong"
                   >
                     #{tag.name}
                   </Link>
@@ -425,7 +425,7 @@ export function VideoDetail({
               <button
                 type="button"
                 onClick={() => setNotesOpen((v) => !v)}
-                className="text-[12px] font-medium text-accent-strong hover:underline"
+                className="text-caption font-medium text-accent-strong hover:underline"
               >
                 {notesOpen ? "Hide" : "Edit"}
               </button>
@@ -456,11 +456,11 @@ export function VideoDetail({
                 </div>
               </div>
             ) : video.personal_notes ? (
-              <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-secondary">
+              <p className="whitespace-pre-wrap text-ui leading-relaxed text-secondary">
                 {video.personal_notes}
               </p>
             ) : (
-              <p className="text-[13px] text-muted">
+              <p className="text-ui text-muted">
                 Add private notes — timestamps, ideas, things to try. They&apos;re searchable.
               </p>
             )}
@@ -486,20 +486,20 @@ export function VideoDetail({
                     <img
                       src={r.thumbnail_url}
                       alt=""
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     />
                   ) : null}
                   {r.duration && (
-                    <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.5 font-mono text-[10px] text-white">
+                    <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.5 font-mono text-micro text-white">
                       {formatDuration(r.duration)}
                     </span>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="line-clamp-2 text-[13px] font-medium leading-snug text-primary">
+                  <p className="line-clamp-2 text-ui font-medium leading-snug text-primary">
                     {r.title}
                   </p>
-                  <p className="mt-1 truncate text-[11.5px] text-muted">
+                  <p className="mt-1 truncate text-caption text-muted">
                     {r.channel_name ?? "Unknown channel"}
                   </p>
                 </div>

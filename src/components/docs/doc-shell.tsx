@@ -25,8 +25,13 @@ export function DocShell({
 }) {
   // HashRouter owns the URL hash, so a plain href="#id" would be parsed as a
   // route and land on the 404 page. Scroll to the heading ourselves instead.
+  // Reduced-motion users get an instant jump rather than smooth scrolling.
   const scrollToSection = useCallback((id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById(id)?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "start",
+    });
   }, []);
 
   return (
@@ -36,7 +41,7 @@ export function DocShell({
           <Link to="/" aria-label="Home">
             <Logo />
           </Link>
-          <nav className="flex items-center gap-1.5 text-[13px]">
+          <nav className="flex items-center gap-1.5 text-ui">
             <Link
               to="/help"
               className="rounded-md px-2.5 py-1.5 text-secondary transition-colors hover:bg-hover hover:text-primary"
@@ -55,13 +60,13 @@ export function DocShell({
       <div className="mx-auto w-full max-w-5xl px-5 py-10 md:py-14">
         <Link
           to={backHref}
-          className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
+          className="mb-6 inline-flex items-center gap-1.5 text-ui text-muted transition-colors hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" /> {backLabel}
         </Link>
 
         <header className="mb-10 max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[12px] font-medium text-accent-strong">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-caption font-medium text-accent-strong">
             <BookOpen className="h-3.5 w-3.5" /> Εγχειρίδιο
           </span>
           <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-balance md:text-4xl">
@@ -72,7 +77,7 @@ export function DocShell({
 
         <div className="grid gap-10 lg:grid-cols-[220px_1fr]">
           <aside className="hidden self-start lg:sticky lg:top-24 lg:block">
-            <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+            <p className="mb-2 font-mono text-micro font-semibold uppercase tracking-[0.14em] text-muted">
               Περιεχόμενα
             </p>
             <ul className="space-y-1 border-l border-border">
@@ -81,7 +86,7 @@ export function DocShell({
                   <button
                     type="button"
                     onClick={() => scrollToSection(s.id)}
-                    className="-ml-px block w-full border-l border-transparent py-1 pl-3 text-left text-[13px] text-secondary transition-colors hover:border-accent hover:text-accent-strong"
+                    className="-ml-px block w-full border-l border-transparent py-1 pl-3 text-left text-ui text-secondary transition-colors hover:border-accent hover:text-accent-strong"
                   >
                     {s.title}
                   </button>
@@ -96,7 +101,7 @@ export function DocShell({
                 <h2 className="mb-3 flex items-center gap-2 border-b border-border pb-3 font-display text-xl font-bold tracking-tight text-primary">
                   {s.title}
                 </h2>
-                <div className="prose-doc space-y-4 text-[14.5px] leading-relaxed text-secondary">
+                <div className="prose-doc space-y-4 text-lead leading-relaxed text-secondary">
                   {s.body}
                 </div>
               </section>
@@ -121,7 +126,7 @@ export function DocShell({
 
 export function DocCode({ children }: { children: React.ReactNode }) {
   return (
-    <pre className="overflow-x-auto rounded-lg border border-border bg-sunken p-4 font-mono text-[13px] leading-relaxed text-primary">
+    <pre className="overflow-x-auto rounded-lg border border-border bg-sunken p-4 font-mono text-ui leading-relaxed text-primary">
       {children}
     </pre>
   );
@@ -138,8 +143,8 @@ export function DocNote({
     <div
       className={
         tone === "warn"
-          ? "rounded-lg border border-danger/30 bg-danger-soft px-4 py-3 text-[13.5px] leading-relaxed text-secondary"
-          : "rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-[13.5px] leading-relaxed text-secondary"
+          ? "rounded-lg border border-danger/30 bg-danger-soft px-4 py-3 text-ui leading-relaxed text-secondary"
+          : "rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-ui leading-relaxed text-secondary"
       }
     >
       {children}
@@ -149,14 +154,14 @@ export function DocNote({
 
 export function DocKbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-border-strong bg-elevated px-1.5 py-0.5 font-mono text-[12px] text-primary">
+    <kbd className="rounded border border-border-strong bg-elevated px-1.5 py-0.5 font-mono text-caption text-primary">
       {children}
     </kbd>
   );
 }
 
 export function DocH3({ children }: { children: React.ReactNode }) {
-  return <h3 className="font-display text-[15px] font-semibold text-primary">{children}</h3>;
+  return <h3 className="font-display text-lead font-semibold text-primary">{children}</h3>;
 }
 
 export function DocOl({ children }: { children: React.ReactNode }) {

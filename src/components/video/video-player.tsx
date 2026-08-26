@@ -36,7 +36,7 @@ export function VideoPlayer({
           className="absolute inset-0 z-10 flex items-center justify-center bg-sunken"
           aria-label={`Play ${title}`}
         >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop transition-transform hover:scale-105">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-contrast shadow-pop transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100">
             <Play className="ml-1 h-7 w-7 fill-current" />
           </span>
         </button>

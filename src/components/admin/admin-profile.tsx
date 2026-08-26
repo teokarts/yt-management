@@ -43,7 +43,7 @@ export function AdminProfile({
     <div className="mx-auto w-full max-w-2xl px-4 py-6 md:px-8 md:py-8">
       <Link
         to="/admin"
-        className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-primary"
+        className="mb-5 inline-flex items-center gap-1.5 text-ui text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" /> Back to overview
       </Link>
@@ -66,12 +66,12 @@ export function AdminProfile({
             {initial}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold text-primary">
+            <p className="truncate text-lead font-semibold text-primary">
               {displayName || "Super admin"}
             </p>
-            <p className="truncate text-[13px] text-muted">{email}</p>
+            <p className="truncate text-ui text-muted">{email}</p>
           </div>
-          <span className="rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent-strong">
+          <span className="rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-micro font-semibold text-accent-strong">
             Super admin
           </span>
         </div>
@@ -104,7 +104,7 @@ export function AdminProfile({
           <User className="h-4 w-4 text-muted" /> Session
         </h2>
         <div className="mt-3 flex items-center justify-between gap-4">
-          <p className="text-[13px] text-muted">
+          <p className="text-ui text-muted">
             Sign out of this device. You&apos;ll need to sign back in to view the admin platform.
           </p>
           <Button variant="danger" onClick={handleSignOut} loading={signingOut}>

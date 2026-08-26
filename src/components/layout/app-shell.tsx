@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Logo } from "@/components/layout/logo";
 import { AddVideoDialog } from "@/components/library/add-video-dialog";
+import { cn } from "@/lib/utils";
+import { useExitTransition } from "@/lib/use-exit-transition";
 import type { Category, Tag, CategoryWithCount, TagWithCount, PlaylistWithCount, Profile } from "@/types/database";
 
 export interface AppShellData {
@@ -23,6 +25,11 @@ export function AppShell({ data, children }: { data: AppShellData; children: Rea
   const [mobileOpen, setMobileOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const { pathname } = useLocation();
+  // Drawer stays mounted while its exit animation plays.
+  const drawerMounted = useExitTransition(mobileOpen, 200);
+  const drawerClosing = !mobileOpen && drawerMounted;
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {
@@ -56,6 +63,45 @@ export function AppShell({ data, children }: { data: AppShellData; children: Rea
     };
   }, []);
 
+  // Mobile drawer modal semantics: focus trap, Escape to close, focus
+  // restoration — mirroring the base Dialog behavior.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setMobileOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = drawerRef.current;
+      if (!root) return;
+      const focusable = root.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKeyDown);
+      window.setTimeout(() => previousFocus?.focus?.(), 0);
+    };
+  }, [mobileOpen]);
+
   const sidebarProps = {
     categories: data.categoryCounts,
     pinnedTags: data.pinnedTags,
@@ -75,20 +121,30 @@ export function AppShell({ data, children }: { data: AppShellData; children: Rea
       </div>
 
       {/* Mobile drawer */}
-      {mobileOpen && (
+      {drawerMounted && (
         <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
           <div
-            className="animate-fade-in absolute inset-0 bg-black/70 backdrop-blur-[2px]"
+            className={cn(
+              "absolute inset-0 bg-black/70 backdrop-blur-[2px]",
+              drawerClosing ? "animate-fade-out" : "animate-fade-in",
+            )}
             onClick={() => setMobileOpen(false)}
           />
-          <div className="animate-fade-up absolute inset-y-0 left-0">
+          <div
+            ref={drawerRef}
+            className={cn(
+              "absolute inset-y-0 left-0",
+              drawerClosing ? "animate-slide-out-left pointer-events-none" : "animate-fade-up",
+            )}
+          >
             <Sidebar {...sidebarProps} />
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Close navigation"
-            className="absolute right-4 top-4 rounded-md p-2 text-secondary hover:bg-hover hover:text-primary"
+            className="absolute right-4 top-4 rounded-md p-2 text-secondary transition-colors hover:bg-hover hover:text-primary"
           >
             <X className="h-5 w-5" />
           </button>

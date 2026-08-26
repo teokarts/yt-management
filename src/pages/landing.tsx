@@ -31,7 +31,7 @@ export function LandingPage() {
           <nav className="flex items-center gap-2">
             <Link
               to="/help"
-              className="hidden rounded-md px-3 py-2 text-[13px] text-secondary transition-colors hover:bg-hover hover:text-primary sm:inline-flex"
+              className="hidden rounded-md px-3 py-2 text-ui text-secondary transition-colors hover:bg-hover hover:text-primary sm:inline-flex"
             >
               Οδηγίες
             </Link>
@@ -58,7 +58,7 @@ export function LandingPage() {
           />
           <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-16 md:pt-24">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[12px] font-medium text-accent-strong">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-caption font-medium text-accent-strong">
                 <Film className="h-3.5 w-3.5" /> A private video knowledge library
               </span>
               <h1 className="mt-5 font-display text-4xl font-bold leading-[1.1] tracking-tight text-balance md:text-6xl">
@@ -107,13 +107,13 @@ export function LandingPage() {
                   {/* Fake sidebar */}
                   <div className="hidden w-48 shrink-0 border-r border-border p-3 md:block">
                     <p className="px-2 font-mono text-[9px] uppercase tracking-widest text-muted">Library</p>
-                    <p className="mt-2 flex items-center gap-2 rounded-md bg-selected px-2 py-1.5 text-[11.5px] text-primary">
+                    <p className="mt-2 flex items-center gap-2 rounded-md bg-selected px-2 py-1.5 text-caption text-primary">
                       <Layers className="h-3 w-3 text-accent" /> All videos <span className="ml-auto text-muted">128</span>
                     </p>
-                    <p className="mt-1 flex items-center gap-2 px-2 py-1.5 text-[11.5px] text-secondary">
+                    <p className="mt-1 flex items-center gap-2 px-2 py-1.5 text-caption text-secondary">
                       <Heart className="h-3 w-3" /> Favorites
                     </p>
-                    <p className="mt-1 flex items-center gap-2 px-2 py-1.5 text-[11.5px] text-secondary">
+                    <p className="mt-1 flex items-center gap-2 px-2 py-1.5 text-caption text-secondary">
                       <Clock className="h-3 w-3" /> Watch later
                     </p>
                     <p className="mt-5 px-2 font-mono text-[9px] uppercase tracking-widest text-muted">Categories</p>
@@ -123,12 +123,12 @@ export function LandingPage() {
                       ["Design", "#e6b34c"],
                       ["Documentaries", "#8b7bd8"],
                     ].map(([name, color]) => (
-                      <p key={name} className="mt-1 flex items-center gap-2 px-2 py-1.5 text-[11.5px] text-secondary">
+                      <p key={name} className="mt-1 flex items-center gap-2 px-2 py-1.5 text-caption text-secondary">
                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} /> {name}
                       </p>
                     ))}
                     <p className="mt-5 px-2 font-mono text-[9px] uppercase tracking-widest text-muted">Pinned tags</p>
-                    <p className="mt-1 flex items-center gap-2 px-2 py-1.5 text-[11.5px] text-secondary">
+                    <p className="mt-1 flex items-center gap-2 px-2 py-1.5 text-caption text-secondary">
                       <Hash className="h-3 w-3" /> tutorial
                     </p>
                   </div>
@@ -142,16 +142,16 @@ export function LandingPage() {
                         <div
                           className={`relative flex aspect-video items-center justify-center bg-gradient-to-br ${card.hue}`}
                         >
-                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-transform group-hover:scale-110">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-transform group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                             <Play className="ml-0.5 h-4 w-4 fill-current" />
                           </span>
-                          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-white">
+                          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-micro text-white">
                             {card.time}
                           </span>
                         </div>
                         <div className="p-2.5">
-                          <p className="line-clamp-1 text-[11.5px] font-semibold text-primary">{card.title}</p>
-                          <p className="mt-0.5 text-[10.5px] text-muted">{card.channel}</p>
+                          <p className="line-clamp-1 text-caption font-semibold text-primary">{card.title}</p>
+                          <p className="mt-0.5 text-micro text-muted">{card.channel}</p>
                           <div className="mt-2 flex items-center gap-1.5">
                             <span className="inline-flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 text-[9px] text-secondary">
                               <FolderOpen className="h-2.5 w-2.5" /> AI
@@ -211,8 +211,8 @@ export function LandingPage() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent-strong">
                     {f.icon}
                   </div>
-                  <h3 className="mt-4 font-display text-[15px] font-semibold text-primary">{f.title}</h3>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-secondary">{f.desc}</p>
+                  <h3 className="mt-4 font-display text-lead font-semibold text-primary">{f.title}</h3>
+                  <p className="mt-1.5 text-ui leading-relaxed text-secondary">{f.desc}</p>
                 </div>
               ))}
             </div>

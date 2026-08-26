@@ -10,9 +10,9 @@ import type { TagWithCount } from "@/types/database";
  * from dwarfing everything else.
  */
 const STEPS = [
-  { text: "text-[12.5px]", pad: "px-2.5 py-1", dot: "h-1 w-1" },
-  { text: "text-[13.5px]", pad: "px-3 py-1.5", dot: "h-1.5 w-1.5" },
-  { text: "text-[15px]", pad: "px-3.5 py-1.5", dot: "h-1.5 w-1.5" },
+  { text: "text-caption", pad: "px-2.5 py-1", dot: "h-1 w-1" },
+  { text: "text-ui", pad: "px-3 py-1.5", dot: "h-1.5 w-1.5" },
+  { text: "text-lead", pad: "px-3.5 py-1.5", dot: "h-1.5 w-1.5" },
   { text: "text-[17px]", pad: "px-4 py-2", dot: "h-2 w-2" },
   { text: "text-[19px]", pad: "px-4.5 py-2", dot: "h-2 w-2" },
 ] as const;
@@ -63,7 +63,7 @@ export function TagCloud({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[12.5px] text-muted">
+        <p className="text-caption text-muted">
           <span className="font-mono text-secondary">{tags.length}</span>{" "}
           {tags.length === 1 ? "tag" : "tags"} ·{" "}
           <span className="font-mono text-secondary">{totalUses}</span>{" "}
@@ -86,7 +86,7 @@ export function TagCloud({
               onClick={() => setSortMode(opt.value)}
               aria-pressed={sortMode === opt.value}
               className={cn(
-                "rounded px-2.5 py-1 text-[12px] font-medium transition-colors",
+                "rounded px-2.5 py-1 text-caption font-medium transition-colors",
                 sortMode === opt.value
                   ? "bg-selected text-primary"
                   : "text-muted hover:text-secondary",
@@ -130,7 +130,7 @@ export function TagCloud({
                 <span>{tag.name}</span>
                 <span
                   className={cn(
-                    "shrink-0 rounded-full font-mono text-[10.5px] tabular-nums",
+                    "shrink-0 rounded-full font-mono text-micro tabular-nums",
                     tag.is_pinned ? "text-accent-strong/70" : "text-muted",
                   )}
                 >
