@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/auth-context";
 import { loadSidebarData } from "@/lib/sidebar";
 import { fetchAllCategories, fetchAllTags } from "@/lib/library";
 import { fetchAllPlaylists } from "@/lib/playlists";
@@ -68,21 +69,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
+  const { user } = useAuth();
 
-  const refresh = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
+  // The actual data fetch, parameterised by user id so the initial load can be
+  // driven directly off the subscribed auth user (see effect below) instead of
+  // re-reading the session, which can race an in-flight login.
+  const load = useCallback(async (userId: string) => {
     // A failure here must not degrade into a silently empty sidebar — that
     // renders as "No categories yet" and looks like real, missing data.
     const [sidebarData, categories, tags, playlists, profileRes] = await Promise.all([
-      loadSidebarData(supabase, user.id),
-      fetchAllCategories(supabase, user.id),
-      fetchAllTags(supabase, user.id),
-      fetchAllPlaylists(supabase, user.id),
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+      loadSidebarData(supabase, userId),
+      fetchAllCategories(supabase, userId),
+      fetchAllTags(supabase, userId),
+      fetchAllPlaylists(supabase, userId),
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     ]).catch((err) => {
       console.error("Failed to load app data", err);
       throw err;
@@ -100,14 +100,37 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       favoriteCount: sidebarData.favoriteCount,
       watchLaterCount: sidebarData.watchLaterCount,
       profile: profileRes.data ?? null,
-      email: user.email ?? "",
+      email: user?.email ?? "",
       isSuperAdmin: Boolean(profileRes.data?.is_super_admin),
     });
-  }, []);
+  }, [user?.email]);
 
+  // Public no-arg re-fetch used after mutations elsewhere in the tree. It runs
+  // only within authenticated routes, so resolving the user id via the auth
+  // context (falling back to the session) is enough here.
+  const refresh = useCallback(async () => {
+    const userId = user?.id;
+    if (!userId) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      return load(session.user.id);
+    }
+    return load(userId);
+  }, [load, user?.id]);
+
+  const userId = user?.id;
   useEffect(() => {
+    // The provider only mounts once a user is signed in, but the initial
+    // `getUser()`/session read can still race an in-flight login and report no
+    // user, which previously left the sidebar empty until a page refresh.
+    // Driving the fetch off the subscribed auth user id guarantees data loads
+    // once the login has actually settled, and re-loads on account switches.
+    if (!userId) return;
     mounted.current = true;
-    refresh()
+    setLoading(true);
+    load(userId)
       .catch(() => {
         // Already logged in refresh(); swallow here so the initial mount does
         // not raise an unhandled rejection.
@@ -118,7 +141,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     return () => {
       mounted.current = false;
     };
-  }, [refresh]);
+  }, [load, userId]);
 
   return (
     <AppDataContext.Provider value={{ ...data, loading, refresh }}>
